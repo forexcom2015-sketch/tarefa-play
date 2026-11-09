@@ -26,11 +26,6 @@ const CadastroCompletarRoute = CadastroCompletarRouteImport.update({
   path: '/cadastro/completar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
-  id: '/cadastros',
-  path: '/cadastros',
-  getParentRoute: () => AdminRoute,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -40,6 +35,11 @@ const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/cadastros',
+  path: '/cadastros',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AnuncianteRoute = AnuncianteRouteImport.update({
   id: '/anunciante',
@@ -84,8 +84,6 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
-  '/cadastro/completar': typeof CadastroCompletarRoute
-  '/admin/cadastros': typeof AdminCadastrosRoute
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
   '/admin/': typeof AdminIndexRoute
@@ -95,6 +93,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/entrar': typeof EntrarRoute
   '/admin': typeof AdminIndexRoute
   '/anunciante': typeof AnuncianteIndexRoute
@@ -104,8 +104,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/anunciante': typeof AnuncianteRouteWithChildren
   '/cadastro': typeof CadastroRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
   '/admin/': typeof AdminIndexRoute
@@ -121,23 +123,21 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/cadastro/completar'
     | '/admin/cadastros'
-    | '/cadastro/completar'
-    | '/admin/cadastros'
-    | '/cadastro/completar'
-    | '/admin/cadastros'
     | '/entrar'
     | '/validador'
     | '/admin/'
     | '/anunciante/'
     | '/validador/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/validador'
+  to: '/' | '/cadastro' | '/cadastro/completar' | '/entrar' | '/admin' | '/admin/cadastros' | '/anunciante' | '/validador'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/anunciante'
     | '/cadastro'
+    | '/cadastro/completar'
+    | '/admin/cadastros'
     | '/entrar'
     | '/validador'
     | '/admin/'
@@ -177,6 +177,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/anunciante'
       preLoaderRoute: typeof AnuncianteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/cadastro/completar': {
+      id: '/cadastro/completar'
+      path: '/cadastro/completar'
+      fullPath: '/cadastro/completar'
+      preLoaderRoute: typeof CadastroCompletarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/cadastro/completar': {
       id: '/cadastro/completar'
