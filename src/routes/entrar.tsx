@@ -49,6 +49,12 @@ function Entrar() {
         db.from("contas_pix").select("aprovado").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("contas_sociais").select("status").eq("usuario_id", auth.user.id).eq("canal", "instagram").maybeSingle(),
       ]);
+      const consultaComErro = [contrato, perfil, interesses, pix, social].find((resultado) => resultado.error);
+      if (consultaComErro?.error) {
+        setCarregando(false);
+        setErro("Não foi possível validar seu cadastro agora. Tente novamente em instantes.");
+        return;
+      }
       const cadastroBaseCompleto = Boolean(contrato.data?.length && perfil.data && (interesses.data?.length ?? 0) >= 3 && pix.data && social.data);
       const aprovadoParaTarefas = pix.data?.aprovado === true && social.data?.status === "aprovada";
       if (!cadastroBaseCompleto || !aprovadoParaTarefas) {
@@ -63,6 +69,12 @@ function Entrar() {
         db.from("cadastro_anunciantes").select("usuario_id").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("documentos_usuarios").select("usuario_id").eq("usuario_id", auth.user.id).maybeSingle(),
       ]);
+      const consultaComErro = [contrato, perfil, documento].find((resultado) => resultado.error);
+      if (consultaComErro?.error) {
+        setCarregando(false);
+        setErro("Não foi possível validar seu cadastro agora. Tente novamente em instantes.");
+        return;
+      }
       if (!contrato.data?.length || !perfil.data || !documento.data) {
         setCarregando(false);
         navigate({ to: "/cadastro/completar" });
