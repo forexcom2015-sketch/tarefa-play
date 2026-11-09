@@ -28,11 +28,11 @@ create table if not exists public.publicacoes (
   categoria_id uuid not null references public.categorias(id) on delete restrict,
   publico_alvo jsonb not null default '{}'::jsonb
     check (jsonb_typeof(publico_alvo) = 'object'),
-  imagem_url text,
-  legenda text not null default '',
-  link text,
+  imagem_url text not null check (length(trim(imagem_url)) > 0),
+  legenda text not null check (length(trim(legenda)) > 0),
+  link text not null check (link ~* '^https?://'),
   preco numeric(12,2) not null default 0 check (preco >= 0),
-  oferta text not null default '',
+  oferta text not null check (length(trim(oferta)) > 0),
   versao integer not null default 1 check (versao > 0),
   status text not null default 'rascunho'
     check (status in ('rascunho','em_validacao','aprovada','publicada')),
