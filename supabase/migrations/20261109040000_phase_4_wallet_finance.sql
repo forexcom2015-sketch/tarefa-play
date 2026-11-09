@@ -228,9 +228,9 @@ language sql
 stable
 security definer
 set search_path = public, pg_temp
-as $
+as $$
   select greatest(coalesce((select valor::numeric from public.configuracoes where chave = 'saque_minimo'), 100), 0.01);
-$;
+$$;
 
 revoke all on function public.obter_saque_minimo() from public, anon;
 grant execute on function public.obter_saque_minimo() to authenticated;
