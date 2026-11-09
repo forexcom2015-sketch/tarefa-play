@@ -18,7 +18,19 @@ import { Route as ValidadorRouteImport } from './routes/validador'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AnuncianteIndexRouteImport } from './routes/anunciante.index'
 import { Route as ValidadorIndexRouteImport } from './routes/validador.index'
+import { Route as CadastroCompletarRouteImport } from './routes/cadastro.completar'
+import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 
+const CadastroCompletarRoute = CadastroCompletarRouteImport.update({
+  id: '/cadastro/completar',
+  path: '/cadastro/completar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/cadastros',
+  path: '/cadastros',
+  getParentRoute: () => AdminRoute,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -70,6 +82,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRouteWithChildren
   '/cadastro': typeof CadastroRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
   '/admin/': typeof AdminIndexRoute
@@ -103,6 +119,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/anunciante'
     | '/cadastro'
+    | '/cadastro/completar'
+    | '/admin/cadastros'
+    | '/cadastro/completar'
+    | '/admin/cadastros'
+    | '/cadastro/completar'
+    | '/admin/cadastros'
     | '/entrar'
     | '/validador'
     | '/admin/'
@@ -128,6 +150,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AnuncianteRoute: typeof AnuncianteRouteWithChildren
   CadastroRoute: typeof CadastroRoute
+  CadastroCompletarRoute: typeof CadastroCompletarRoute
   EntrarRoute: typeof EntrarRoute
   ValidadorRoute: typeof ValidadorRouteWithChildren
 }
@@ -154,6 +177,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/anunciante'
       preLoaderRoute: typeof AnuncianteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/cadastro/completar': {
+      id: '/cadastro/completar'
+      path: '/cadastro/completar'
+      fullPath: '/cadastro/completar'
+      preLoaderRoute: typeof CadastroCompletarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/cadastro': {
       id: '/cadastro'
@@ -202,10 +239,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCadastrosRoute: typeof AdminCadastrosRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminCadastrosRoute: AdminCadastrosRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -239,6 +278,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AnuncianteRoute: AnuncianteRouteWithChildren,
   CadastroRoute: CadastroRoute,
+  CadastroCompletarRoute: CadastroCompletarRoute,
   EntrarRoute: EntrarRoute,
   ValidadorRoute: ValidadorRouteWithChildren,
 }
