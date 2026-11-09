@@ -177,10 +177,10 @@ begin
         select 1
         from public.habilitacoes h
         join public.tarefas t on t.id = h.tarefa_id
-        join public.rodadas_validacao rv on rv.id = t.publicacao_id
         where h.validador_id = cv.usuario_id
           and h.status in ('habilitado','em_andamento')
           and t.publicacao_id is not null
+          and t.status = 'ativa'
       )
     order by (
       select count(*)
