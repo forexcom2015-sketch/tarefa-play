@@ -20,6 +20,10 @@ import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AnuncianteIndexRouteImport } from './routes/anunciante.index'
 import { Route as ValidadorIndexRouteImport } from './routes/validador.index'
+import { Route as ValidadorMinhasTarefasRouteImport } from './routes/validador.minhas-tarefas'
+import { Route as ValidadorGanhosRouteImport } from './routes/validador.ganhos'
+import { Route as ValidadorPerfilRouteImport } from './routes/validador.perfil'
+import { Route as AdminTiposTarefaRouteImport } from './routes/admin.tipos-tarefa'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -71,9 +75,29 @@ const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
   path: '/cadastros',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTiposTarefaRoute = AdminTiposTarefaRouteImport.update({
+  id: '/tipos-tarefa',
+  path: '/tipos-tarefa',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ValidadorIndexRoute = ValidadorIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => ValidadorRoute,
+} as any)
+const ValidadorMinhasTarefasRoute = ValidadorMinhasTarefasRouteImport.update({
+  id: '/minhas-tarefas',
+  path: '/minhas-tarefas',
+  getParentRoute: () => ValidadorRoute,
+} as any)
+const ValidadorGanhosRoute = ValidadorGanhosRouteImport.update({
+  id: '/ganhos',
+  path: '/ganhos',
+  getParentRoute: () => ValidadorRoute,
+} as any)
+const ValidadorPerfilRoute = ValidadorPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => ValidadorRoute,
 } as any)
 
@@ -86,9 +110,13 @@ export interface FileRoutesByFullPath {
   '/validador': typeof ValidadorRouteWithChildren
   '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
   '/admin/': typeof AdminIndexRoute
   '/anunciante/': typeof AnuncianteIndexRoute
   '/validador/': typeof ValidadorIndexRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/perfil': typeof ValidadorPerfilRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +127,10 @@ export interface FileRoutesByTo {
   '/validador': typeof ValidadorIndexRoute
   '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/perfil': typeof ValidadorPerfilRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +145,10 @@ export interface FileRoutesById {
   '/validador/': typeof ValidadorIndexRoute
   '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/perfil': typeof ValidadorPerfilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,8 +164,12 @@ export interface FileRouteTypes {
     | '/validador/'
     | '/cadastro/completar'
     | '/admin/cadastros'
+    | '/admin/tipos-tarefa'
+    | '/validador/minhas-tarefas'
+    | '/validador/ganhos'
+    | '/validador/perfil'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/validador' | '/cadastro/completar' | '/admin/cadastros'
+  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/validador' | '/cadastro/completar' | '/admin/cadastros' | '/admin/tipos-tarefa' | '/validador/minhas-tarefas' | '/validador/ganhos' | '/validador/perfil'
   id:
     | '__root__'
     | '/'
@@ -143,6 +183,10 @@ export interface FileRouteTypes {
     | '/validador/'
     | '/cadastro/completar'
     | '/admin/cadastros'
+    | '/admin/tipos-tarefa'
+    | '/validador/minhas-tarefas'
+    | '/validador/ganhos'
+    | '/validador/perfil'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,11 +270,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCadastrosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/tipos-tarefa': {
+      id: '/admin/tipos-tarefa'
+      path: '/tipos-tarefa'
+      fullPath: '/admin/tipos-tarefa'
+      preLoaderRoute: typeof AdminTiposTarefaRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/validador/': {
       id: '/validador/'
       path: '/'
       fullPath: '/validador/'
       preLoaderRoute: typeof ValidadorIndexRouteImport
+      parentRoute: typeof ValidadorRoute
+    }
+    '/validador/minhas-tarefas': {
+      id: '/validador/minhas-tarefas'
+      path: '/minhas-tarefas'
+      fullPath: '/validador/minhas-tarefas'
+      preLoaderRoute: typeof ValidadorMinhasTarefasRouteImport
+      parentRoute: typeof ValidadorRoute
+    }
+    '/validador/ganhos': {
+      id: '/validador/ganhos'
+      path: '/ganhos'
+      fullPath: '/validador/ganhos'
+      preLoaderRoute: typeof ValidadorGanhosRouteImport
+      parentRoute: typeof ValidadorRoute
+    }
+    '/validador/perfil': {
+      id: '/validador/perfil'
+      path: '/perfil'
+      fullPath: '/validador/perfil'
+      preLoaderRoute: typeof ValidadorPerfilRouteImport
       parentRoute: typeof ValidadorRoute
     }
   }
@@ -249,11 +321,13 @@ const CadastroRouteWithChildren = CadastroRoute._addFileChildren(CadastroRouteCh
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AdminCadastrosRoute: typeof AdminCadastrosRoute
+  AdminTiposTarefaRoute: typeof AdminTiposTarefaRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminCadastrosRoute: AdminCadastrosRoute,
+  AdminTiposTarefaRoute: AdminTiposTarefaRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -272,10 +346,16 @@ const AnuncianteRouteWithChildren = AnuncianteRoute._addFileChildren(
 
 interface ValidadorRouteChildren {
   ValidadorIndexRoute: typeof ValidadorIndexRoute
+  ValidadorMinhasTarefasRoute: typeof ValidadorMinhasTarefasRoute
+  ValidadorGanhosRoute: typeof ValidadorGanhosRoute
+  ValidadorPerfilRoute: typeof ValidadorPerfilRoute
 }
 
 const ValidadorRouteChildren: ValidadorRouteChildren = {
   ValidadorIndexRoute: ValidadorIndexRoute,
+  ValidadorMinhasTarefasRoute: ValidadorMinhasTarefasRoute,
+  ValidadorGanhosRoute: ValidadorGanhosRoute,
+  ValidadorPerfilRoute: ValidadorPerfilRoute,
 }
 
 const ValidadorRouteWithChildren = ValidadorRoute._addFileChildren(

@@ -27,5 +27,10 @@ export const Route = createFileRoute("/validador")({
     }
   },
   head: () => ({ meta: [{ title: "Área do Validador — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
-  component: () => <LayoutMenuInferior titulo="Área do Validador" itens={[{ to: "/validador", label: "Início" }]} />,
+  component: () => <LayoutMenuInferior titulo="Área do Validador" itens={[
+    { to: "/validador", label: "Tarefas" },
+    { to: "/validador/minhas-tarefas", label: "Minhas tarefas" },
+    { to: "/validador/ganhos", label: "Ganhos" },
+    { to: "/validador/perfil", label: "Perfil" },
+  ]} />,
 });
