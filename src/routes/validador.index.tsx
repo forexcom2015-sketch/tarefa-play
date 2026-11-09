@@ -8,6 +8,7 @@ type Tarefa = {
   categoria_id: string;
   vagas: number;
   vagas_ocupadas: number;
+  vagas_concluidas: number;
   link_destino: string | null;
   tempo_estimado_minutos: number;
   is_demo: boolean;
@@ -45,7 +46,7 @@ function TarefasDisponiveis() {
     }
     const { data, error: tarefasError } = await db
       .from("tarefas")
-      .select("id,categoria_id,vagas,vagas_ocupadas,link_destino,tempo_estimado_minutos,is_demo,categorias(nome),tipos_tarefa(nome,valor_validador,canais(nome))")
+      .select("id,categoria_id,vagas,vagas_ocupadas,vagas_concluidas,link_destino,tempo_estimado_minutos,is_demo,categorias(nome),tipos_tarefa(nome,valor_validador,canais(nome))")
       .eq("status", "ativa")
       .order("criado_em", { ascending: false });
     if (tarefasError) {
@@ -96,7 +97,7 @@ function TarefasDisponiveis() {
       ) : (
         <div className="space-y-3">
           {tarefas.map((tarefa) => {
-            const vagasLivres = Math.max(0, tarefa.vagas - tarefa.vagas_ocupadas);
+            const vagasLivres = Math.max(0, tarefa.vagas - tarefa.vagas_ocupadas - tarefa.vagas_concluidas);
             return (
               <article key={tarefa.id} className="space-y-3 rounded-xl border border-border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
