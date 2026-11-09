@@ -20,10 +20,6 @@ import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AnuncianteIndexRouteImport } from './routes/anunciante.index'
 import { Route as ValidadorIndexRouteImport } from './routes/validador.index'
-import { Route as ValidadorMinhasTarefasRouteImport } from './routes/validador.minhas-tarefas'
-import { Route as ValidadorGanhosRouteImport } from './routes/validador.ganhos'
-import { Route as ValidadorPerfilRouteImport } from './routes/validador.perfil'
-import { Route as AdminTiposTarefaRouteImport } from './routes/admin.tipos-tarefa'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -75,6 +71,11 @@ const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
   path: '/cadastros',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTiposTarefaRoute = AdminTiposTarefaRouteImport.update({
+  id: '/tipos-tarefa',
+  path: '/tipos-tarefa',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ValidadorIndexRoute = ValidadorIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -94,11 +95,6 @@ const ValidadorPerfilRoute = ValidadorPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
   getParentRoute: () => ValidadorRoute,
-} as any)
-const AdminTiposTarefaRoute = AdminTiposTarefaRouteImport.update({
-  id: '/tipos-tarefa',
-  path: '/tipos-tarefa',
-  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -145,6 +141,10 @@ export interface FileRoutesById {
   '/validador/': typeof ValidadorIndexRoute
   '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/perfil': typeof ValidadorPerfilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -273,6 +273,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTiposTarefaRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/validador/': {
+      id: '/validador/'
+      path: '/'
+      fullPath: '/validador/'
+      preLoaderRoute: typeof ValidadorIndexRouteImport
+      parentRoute: typeof ValidadorRoute
+    }
     '/validador/minhas-tarefas': {
       id: '/validador/minhas-tarefas'
       path: '/minhas-tarefas'
@@ -292,13 +299,6 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/validador/perfil'
       preLoaderRoute: typeof ValidadorPerfilRouteImport
-      parentRoute: typeof ValidadorRoute
-    }
-    '/validador/': {
-      id: '/validador/'
-      path: '/'
-      fullPath: '/validador/'
-      preLoaderRoute: typeof ValidadorIndexRouteImport
       parentRoute: typeof ValidadorRoute
     }
   }
@@ -323,6 +323,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AdminCadastrosRoute: AdminCadastrosRoute,
+  AdminTiposTarefaRoute: AdminTiposTarefaRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
