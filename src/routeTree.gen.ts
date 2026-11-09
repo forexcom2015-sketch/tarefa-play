@@ -141,6 +141,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/anunciante/'
     | '/validador/'
+    | '/cadastro/completar'
+    | '/admin/cadastros'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -150,6 +152,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   EntrarRoute: typeof EntrarRoute
   ValidadorRoute: typeof ValidadorRouteWithChildren
+  CadastroCompletarRoute: typeof CadastroCompletarRoute
 }
 
 declare module '@tanstack/react-router' {
