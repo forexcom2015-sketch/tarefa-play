@@ -321,7 +321,7 @@ declare
   v_primeiro_pagamento boolean;
   v_disponivel_em timestamptz;
 begin
-  if coalesce(auth.role(), '') <> 'service_role'
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role'
     and (auth.uid() is null or not (select private.has_role('admin'::app_role))) then
     raise exception 'Somente o Admin ou o backend autorizado pode confirmar pagamentos internos.';
   end if;
@@ -511,7 +511,7 @@ declare
   v_carteira public.carteiras;
   v_bonus numeric(14,2);
 begin
-  if coalesce(auth.role(), '') <> 'service_role'
+  if coalesce(auth.jwt() ->> 'role', '') <> 'service_role'
     and (auth.uid() is null or not (select private.has_role('admin'::app_role))) then
     raise exception 'Somente o Admin ou o backend autorizado pode autorizar bonus de indicacao.';
   end if;
