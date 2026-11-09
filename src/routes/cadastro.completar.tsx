@@ -134,10 +134,10 @@ function CompletarCadastro() {
           contentType: imagem!.type, upsert: false,
         });
         if (uploadError) throw uploadError;
-        const { data: url } = supabase.storage.from("verificacoes-instagram").getPublicUrl(caminho);
+        const imagemPath = caminho;
         const { error: socialError } = await db.from("contas_sociais").upsert({
           usuario_id: user.id, canal: "instagram", handle: instagram.replace(/^@/, ""),
-          data_primeira_postagem: dataPostagem, imagem_url: url.publicUrl, status: "pendente",
+          data_primeira_postagem: dataPostagem, imagem_url: imagemPath, status: "pendente",
         }, { onConflict: "usuario_id,canal" });
         if (socialError) throw socialError;
 
