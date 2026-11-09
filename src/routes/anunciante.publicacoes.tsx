@@ -66,15 +66,15 @@ function PublicacoesAnunciante() {
     setErro("");
     if (atual === 1) {
       const min = Number(form.idadeMin); const max = Number(form.idadeMax);
-      if (!form.categoriaId || !form.regiao.trim() || !Number.isInteger(min) || !Number.isInteger(max) || min < 18 || max < min || max > 120) {
-        setErro("Selecione a categoria, informe a região e uma faixa etária válida (a partir de 18 anos)."); return false;
+      if (!form.categoriaId || !form.regiao.trim() || !Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min || max > 120) {
+        setErro("Selecione a categoria, informe a região e uma faixa etária válida (de 0 a 120 anos)."); return false;
       }
     }
     if (atual === 2) {
-      if (form.link.trim()) {
-        try { const url = new URL(form.link); if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error(); }
-        catch { setErro("Informe um link válido começando com https:// ou http://."); return false; }
-      }
+      if (!arquivo) { setErro("Selecione a imagem do criativo para continuar."); return false; }
+      if (!form.link.trim()) { setErro("Informe o link de destino da publicação."); return false; }
+      try { const url = new URL(form.link); if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error(); }
+      catch { setErro("Informe um link válido começando com https:// ou http://."); return false; }
       if (!form.legenda.trim()) { setErro("Informe a legenda da publicação."); return false; }
       if (arquivo && (!["image/jpeg", "image/png", "image/webp"].includes(arquivo.type) || arquivo.size > 5 * 1024 * 1024)) {
         setErro("A imagem deve ser JPG, PNG ou WEBP e ter no máximo 5 MB."); return false;
@@ -159,7 +159,7 @@ function PublicacoesAnunciante() {
               <input value={form.regiao} onChange={(e) => atualizar("regiao", e.target.value)} placeholder="Ex.: Brasil, Nordeste ou São Paulo" className="h-10 w-full rounded-md border border-input bg-background px-3" />
             </label>
             <label className="space-y-1 text-sm text-foreground">Idade mínima
-              <input type="number" min="18" max="120" value={form.idadeMin} onChange={(e) => atualizar("idadeMin", e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3" />
+              <input type="number" min="0" max="120" value={form.idadeMin} onChange={(e) => atualizar("idadeMin", e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3" />
             </label>
             <label className="space-y-1 text-sm text-foreground">Idade máxima
               <input type="number" min="18" max="120" value={form.idadeMax} onChange={(e) => atualizar("idadeMax", e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3" />
@@ -174,8 +174,8 @@ function PublicacoesAnunciante() {
             <label className="block space-y-1 text-sm text-foreground">Legenda
               <textarea rows={4} maxLength={2000} value={form.legenda} onChange={(e) => atualizar("legenda", e.target.value)} className="w-full rounded-md border border-input bg-background p-3" placeholder="Descreva o produto ou serviço..." />
             </label>
-            <label className="block space-y-1 text-sm text-foreground">Link de destino (opcional)
-              <input type="url" value={form.link} onChange={(e) => atualizar("link", e.target.value)} placeholder="https://..." className="h-10 w-full rounded-md border border-input bg-background px-3" />
+            <label className="block space-y-1 text-sm text-foreground">Link de destino
+              <input type="url" value={form.link} onChange={(e) => atualizar("link", e.target.value)} placeholder="https://..." required className="h-10 w-full rounded-md border border-input bg-background px-3" />
             </label>
           </div>}
 
