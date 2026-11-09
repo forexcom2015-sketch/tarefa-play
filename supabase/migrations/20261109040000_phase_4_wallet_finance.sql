@@ -229,7 +229,7 @@ stable
 security definer
 set search_path = public, pg_temp
 as $
-  select coalesce((select valor::numeric from public.configuracoes where chave = 'saque_minimo'), 100);
+  select greatest(coalesce((select valor::numeric from public.configuracoes where chave = 'saque_minimo'), 100), 0.01);
 $;
 
 revoke all on function public.obter_saque_minimo() from public, anon;
@@ -403,7 +403,7 @@ begin
   v_carteira := public.obter_ou_criar_carteira();
   perform pg_advisory_xact_lock(hashtext(v_carteira.id::text));
 
-  select coalesce(valor::numeric, 100) into v_minimo from public.configuracoes where chave = 'saque_minimo';
+  select greatest(coalesce(valor::numeric, 100), 0.01) into v_minimo from public.configuracoes where chave = 'saque_minimo';
   if p_valor < v_minimo then raise exception 'O saque minimo e de R$ %.', to_char(v_minimo, 'FM999G999G990D00'); end if;
 
   select documento_normalizado into v_documento
