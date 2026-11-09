@@ -13,6 +13,19 @@ const CONTRATO_VERSAO = "1.0";
 const CONTRATO_TEXTO =
   "Você atua como profissional independente e utiliza uma plataforma que faz a conexão entre usuários e empresas. Você tem liberdade para organizar seus horários. A plataforma não estabelece vínculo trabalhista. A remuneração, quando aplicável, depende das atividades válidas e das regras publicadas. Este texto é um modelo provisório e deve passar por revisão jurídica antes de ser utilizado como contrato definitivo.";
 
+function validarCnpj(valor: string) {
+  const cnpj = valor.replace(/\\D/g, "");
+  if (cnpj.length !== 14 || /^(\\d)\\1{13}$/.test(cnpj)) return false;
+  const calcular = (base: string, pesos: number[]) => {
+    const soma = [...base].reduce((total, digito, i) => total + Number(digito) * pesos[i], 0);
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+  const primeiro = calcular(cnpj.slice(0, 12), [5,4,3,2,9,8,7,6,5,4,3,2]);
+  const segundo = calcular(cnpj.slice(0, 12) + primeiro, [6,5,4,3,2,9,8,7,6,5,4,3,2]);
+  return primeiro === Number(cnpj[12]) && segundo === Number(cnpj[13]);
+}
+
 function validarCpf(valor: string) {
   const cpf = valor.replace(/\D/g, "");
   if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -37,7 +50,7 @@ function CompletarCadastro() {
   const [interesses, setInteresses] = useState<string[]>([]);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [documento, setDocumento] = useState("");
+  const [documento, setDocumento] = useState("");\n  const [tipoDocumento, setTipoDocumento] = useState<"cpf" | "cnpj">("cpf");
   const [tipoProduto, setTipoProduto] = useState("");
   const [tipoChave, setTipoChave] = useState("cpf");
   const [chavePix, setChavePix] = useState("");
@@ -53,7 +66,7 @@ function CompletarCadastro() {
   const [salvando, setSalvando] = useState(false);
 
   const db = supabase as any;
-  const cpfValido = useMemo(() => validarCpf(documento), [documento]);
+  const documentoValido = useMemo(() => tipoDocumento === "cpf" ? validarCpf(documento) : validarCnpj(documento), [documento, tipoDocumento]);
 
   useEffect(() => {
     let ativo = true;
@@ -84,7 +97,7 @@ function CompletarCadastro() {
     if (!maiorDe18) return setErro("Confirme que você tem 18 anos ou mais.");
     if (!aceite) return setErro("É necessário aceitar o contrato para continuar.");
     if (!nome.trim() || !telefone.trim() || !documento.trim()) return setErro("Preencha nome, telefone e CPF.");
-    if (!cpfValido) return setErro("Informe um CPF válido.");
+    if (!documentoValido) return setErro(tipoDocumento === "cpf" ? "Informe um CPF válido." : "Informe um CNPJ válido.");\n    if (papel === "validador" && tipoDocumento !== "cpf") return setErro("O cadastro de Validador exige CPF.");
     if (papel === "validador" && (interesses.length < 3 || interesses.length > 8)) return setErro("Selecione de 3 a 8 interesses.");
     if (papel === "validador" && !consentimento) return setErro("Confirme o consentimento para uso dos interesses no direcionamento de tarefas.");
     if (papel === "validador" && (!chavePix.trim() || !titularPix.trim())) return setErro("Preencha os dados da conta Pix.");
@@ -99,7 +112,7 @@ function CompletarCadastro() {
 
       const documentoLimpo = documento.replace(/\D/g, "");
       const { error: docError } = await db.from("documentos_usuarios").upsert({
-        usuario_id: user.id, tipo_documento: "cpf", documento: documentoLimpo,
+        usuario_id: user.id, tipo_documento: tipoDocumento, documento: documentoLimpo,
       }, { onConflict: "usuario_id" });
       if (docError) throw docError;
 
