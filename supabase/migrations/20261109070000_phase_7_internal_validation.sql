@@ -332,8 +332,12 @@ begin
   end if;
 
   select * into v_tarefa from public.tarefas where id = v_habilitacao.tarefa_id for update;
-  select * into v_rodada from public.rodadas_validacao
-  where id = (select rv.id from public.rodadas_validacao rv where rv.publicacao_id = v_tarefa.publicacao_id and rv.status = 'em_andamento' limit 1)
+  select rv.* into v_rodada from public.rodadas_validacao rv
+  where rv.id = (
+    select rv2.id from public.rodadas_validacao rv2
+    where rv2.publicacao_id = v_tarefa.publicacao_id and rv2.status = 'em_andamento'
+    limit 1
+  )
   for update;
   if v_rodada.id is null then raise exception 'Rodada de validacao nao encontrada.'; end if;
 
@@ -491,7 +495,7 @@ declare
 begin
   if auth.uid() is null then raise exception 'Autenticacao obrigatoria.'; end if;
 
-  select * into v_rodada
+  select rv.* into v_rodada
   from public.rodadas_validacao rv
   join public.publicacoes p on p.id = rv.publicacao_id
   where rv.id = p_rodada_id
