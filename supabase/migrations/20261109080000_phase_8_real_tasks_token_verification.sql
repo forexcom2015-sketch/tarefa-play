@@ -153,7 +153,7 @@ begin
   if p_vagas is null or p_vagas < 1 or p_vagas > 10000 then
     raise exception 'Informe uma quantidade de vagas entre 1 e 10000.';
   end if;
-  if p_link_publicacao is null or p_link_publicacao !~* '^https?://(www\\.)?instagram\\.com/' then
+  if p_link_publicacao is null or p_link_publicacao !~* '^https?://(www\.)?instagram\.com/' then
     raise exception 'Informe o link publico da publicacao real no Instagram.';
   end if;
 
@@ -565,13 +565,15 @@ begin
     jsonb_build_object('tarefa_id', v_tarefa.id, 'habilitacao_id', p_habilitacao_id,
       'token_id', v_token.id, 'pagamento_bruto', v_pagamento));
 
+  update public.chamados_token
+  set status = 'resolvido', responsavel = v_user_id, atualizado_em = now()
+  where habilitacao_id = p_habilitacao_id
+    and status in ('aguardando_anunciante','em_suporte');
+
   return jsonb_build_object('success', true, 'valor_pago', v_tipo.valor_validador,
-    'disponivel_em_pendente', true, 'message', 'Codigo validado e pagamento registrado.');
+    'message', 'Codigo validado e pagamento registrado. O prazo de disponibilidade segue as regras da carteira.');
 end;
 $$;
-
-revoke all on function public.validar_token_tarefa(uuid,text) from public, anon;
-grant execute on function public.validar_token_tarefa(uuid,text) to authenticated;
 
 revoke all on function public.validar_token_tarefa(uuid,text) from public, anon;
 grant execute on function public.validar_token_tarefa(uuid,text) to authenticated;
@@ -685,7 +687,6 @@ begin
 
   update public.chamados_token c
   set resposta_anunciante = trim(p_resposta),
-      status = 'resolvido',
       responsavel = auth.uid(),
       atualizado_em = now()
   where c.id = p_chamado_id
@@ -741,6 +742,10 @@ begin
   select * into v_tarefa from public.tarefas where id = v_habilitacao.tarefa_id for update;
   select * into v_publicacao from public.publicacoes where id = v_tarefa.publicacao_id;
   select * into v_tipo from public.tipos_tarefa where id = v_tarefa.tipo_tarefa_id;
+
+  if v_tarefa.tokens_exportados_em is null and p_decisao <> 'pagar' then
+    raise exception 'A lista de tokens nao foi exportada. O pagamento ao Validador e obrigatorio.';
+  end if;
 
   if p_decisao = 'pagar' then
     if v_habilitacao.status not in ('habilitado','em_andamento') then
