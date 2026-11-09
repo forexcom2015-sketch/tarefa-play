@@ -124,6 +124,10 @@ function MinhasTarefas() {
             <div className="flex flex-wrap gap-2">
               {item.tarefas?.is_demo ? (
                 <Button type="button" variant="outline" disabled>Executar — Em breve</Button>
+              ) : (item.status === "habilitado" || item.status === "em_andamento") && item.tarefas?.tipos_tarefa?.canais?.nome === "Instagram" ? (
+                <Link to="/validador/token/$habilitacaoId" params={{ habilitacaoId: item.id }}>
+                  <Button type="button">Enviar código</Button>
+                </Link>
               ) : item.status === "habilitado" || item.status === "em_andamento" ? (
                 <Link to="/validador/executar/$habilitacaoId" params={{ habilitacaoId: item.id }}>
                   <Button type="button">Avaliar publicação</Button>

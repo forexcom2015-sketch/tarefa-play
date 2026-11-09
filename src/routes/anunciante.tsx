@@ -10,6 +10,8 @@ export const Route = createFileRoute("/anunciante")({
     { to: "/anunciante", label: "Início" },
     { to: "/anunciante/publicacoes", label: "Publicações" },
     { to: "/anunciante/validacoes", label: "Validações" },
+    { to: "/anunciante/tarefas", label: "Tarefas reais" },
+    { to: "/anunciante/automacao", label: "Automação" },
     { to: "/anunciante/carteira", label: "Carteira" },
     { to: "/anunciante/configuracoes", label: "Configurações" },
   ]} />,
