@@ -99,6 +99,26 @@ using (
   or (
     status = 'ativa'
     and (select private.has_role('validador'::app_role))
+    and exists (select 1 from public.aceites_contrato ac where ac.usuario_id = (select auth.uid()))
+    and exists (
+      select 1 from public.cadastro_validadores cv
+      where cv.usuario_id = (select auth.uid())
+        and cv.maior_de_18 = true
+        and cv.consentimento_lgpd_interesses = true
+    )
+    and exists (
+      select 1 from public.documentos_usuarios du
+      where du.usuario_id = (select auth.uid()) and du.tipo_documento = 'cpf'
+    )
+    and (select count(*) from public.interesses_validador iv where iv.usuario_id = (select auth.uid())) between 3 and 8
+    and exists (
+      select 1 from public.contas_pix cp
+      where cp.usuario_id = (select auth.uid()) and cp.aprovado = true
+    )
+    and exists (
+      select 1 from public.contas_sociais cs
+      where cs.usuario_id = (select auth.uid()) and cs.canal = 'instagram' and cs.status = 'aprovada'
+    )
     and exists (
       select 1
       from public.interesses_validador i
@@ -148,12 +168,8 @@ insert into public.tarefas (
 )
 select tt.id, cat.id, 20, 0, 'https://example.com', 2, 'ativa', true
 from public.tipos_tarefa tt
-cross join lateral (
-  select id from public.categorias
-  where ativa = true
-  order by case when lower(nome) = 'outros' then 0 else 1 end, nome
-  limit 1
-) cat
+cross join public.categorias cat
+where cat.ativa = true
 where tt.acao in ('curtir_publicacao','visitar_pagina','assistir_video')
   and not exists (
     select 1 from public.tarefas t
