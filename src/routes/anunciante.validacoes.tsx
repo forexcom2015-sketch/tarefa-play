@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button";
 type Publicacao = { id: string; legenda: string; status: string; categoria_id: string; revisao_admin_pendente: boolean; categorias?: { nome: string } | null };
 type Rodada = { id: string; publicacao_id: string; quantidade_contratada: number; quantidade_concluida: number; valor_reservado: number | string; status: string };
 type Confirmacao = { publicacao: Publicacao; estimativa: number; valor: number };
+type Resultado = {
+  disponivel: boolean; total_avaliacoes: number; nota_geral: number | null;
+  percentual_aprovacao: number | null; percentual_compraria: number | null;
+  nota_produto: number | null; nota_preco: number | null; nota_divulgacao: number | null;
+  motivos_mais_citados: Array<{ motivo: string; total: number }>; diagnostico: string | null;
+};
 const db = supabase as any;
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 
@@ -19,6 +25,7 @@ function ValidacoesAnunciante() {
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [resultados, setResultados] = useState<Record<string, Resultado>>({});
 
   const carregar = useCallback(async () => {
     setCarregando(true); setErro("");
@@ -27,7 +34,18 @@ function ValidacoesAnunciante() {
       db.from("rodadas_validacao").select("id,publicacao_id,quantidade_contratada,quantidade_concluida,valor_reservado,status").order("criado_em", { ascending: false }),
     ]);
     if (pubs.error || rounds.error) setErro("Não foi possível carregar as validações. Confirme se a migration da Fase 6 foi aplicada.");
-    else { setPublicacoes((pubs.data ?? []) as Publicacao[]); setRodadas((rounds.data ?? []) as Rodada[]); }
+    else {
+      const roundsData = (rounds.data ?? []) as Rodada[];
+      setPublicacoes((pubs.data ?? []) as Publicacao[]);
+      setRodadas(roundsData);
+      const entradas = await Promise.all(roundsData.map(async (round) => {
+        const { data, error } = await db.rpc("obter_resultado_validacao", { p_rodada_id: round.id });
+        if (error) return null;
+        const item = Array.isArray(data) ? data[0] : data;
+        return item ? [round.id, item as Resultado] as const : null;
+      }));
+      setResultados(Object.fromEntries(entradas.filter((item): item is readonly [string, Resultado] => Boolean(item))));
+    }
     setCarregando(false);
   }, []);
 
@@ -84,7 +102,35 @@ function ValidacoesAnunciante() {
         })}
       </div>
       <div className="space-y-3"><h3 className="font-semibold text-foreground">Rodadas de validação</h3>
-        {rodadas.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Nenhuma rodada contratada até o momento.</p> : rodadas.map((r) => <article key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4 text-sm"><div><p className="font-semibold text-foreground">Rodada {r.id.slice(0,8)}</p><p className="text-muted-foreground">{r.quantidade_concluida} de {r.quantidade_contratada} concluídas</p></div><div className="text-right"><p className="font-semibold text-foreground">{moeda(r.valor_reservado)}</p><p className="text-xs text-muted-foreground">{r.status === "em_andamento" ? "Em andamento" : r.status}</p></div></article>)}
+        {rodadas.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Nenhuma rodada contratada até o momento.</p> : rodadas.map((r) => {
+          const resultado = resultados[r.id];
+          return <article key={r.id} className="space-y-3 rounded-lg border border-border bg-card p-4 text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div><p className="font-semibold text-foreground">Rodada {r.id.slice(0,8)}</p><p className="text-muted-foreground">{r.quantidade_concluida} de {r.quantidade_contratada} concluídas</p></div>
+              <div className="text-right"><p className="font-semibold text-foreground">{moeda(r.valor_reservado)}</p><p className="text-xs text-muted-foreground">{r.status === "em_andamento" ? "Em andamento" : r.status}</p></div>
+            </div>
+            {resultado?.disponivel ? (
+              <div className="rounded-lg bg-muted p-4">
+                <p className="font-semibold text-foreground">Resultado privado · 100+ avaliações</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-4">
+                  <div><span className="text-xs text-muted-foreground">Nota geral</span><p className="text-lg font-bold">{resultado.nota_geral?.toFixed(2)}</p></div>
+                  <div><span className="text-xs text-muted-foreground">Aprovação</span><p className="text-lg font-bold">{resultado.percentual_aprovacao?.toFixed(1)}%</p></div>
+                  <div><span className="text-xs text-muted-foreground">Compraria</span><p className="text-lg font-bold">{resultado.percentual_compraria?.toFixed(1)}%</p></div>
+                  <div><span className="text-xs text-muted-foreground">Avaliações</span><p className="text-lg font-bold">{resultado.total_avaliacoes}</p></div>
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <p>Produto: <strong>{resultado.nota_produto?.toFixed(2)}</strong></p>
+                  <p>Preço: <strong>{resultado.nota_preco?.toFixed(2)}</strong></p>
+                  <p>Divulgação: <strong>{resultado.nota_divulgacao?.toFixed(2)}</strong></p>
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">{resultado.diagnostico}</p>
+                {resultado.motivos_mais_citados.length > 0 && <div className="mt-3"><p className="font-medium text-foreground">Motivos mais citados</p><ul className="mt-1 list-disc pl-5 text-muted-foreground">{resultado.motivos_mais_citados.map((m, i) => <li key={i}>{m.motivo} · {m.total}</li>)}</ul></div>}
+              </div>
+            ) : (
+              <p className="rounded-md bg-muted p-3 text-xs text-muted-foreground">Resultado privado bloqueado até completar 100 avaliações. Atual: {resultado?.total_avaliacoes ?? r.quantidade_concluida}.</p>
+            )}
+          </article>;
+        })}
       </div>
     </section>
   );
