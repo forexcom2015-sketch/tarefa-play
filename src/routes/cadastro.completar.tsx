@@ -53,6 +53,7 @@ function CompletarCadastro() {
   const [documento, setDocumento] = useState("");
   const [tipoDocumento, setTipoDocumento] = useState<"cpf" | "cnpj">("cpf");
   const [tipoProduto, setTipoProduto] = useState("");
+  const [codigoIndicacao, setCodigoIndicacao] = useState("");
   const [tipoChave, setTipoChave] = useState("cpf");
   const [chavePix, setChavePix] = useState("");
   const [titularPix, setTitularPix] = useState("");
@@ -164,6 +165,13 @@ function CompletarCadastro() {
         if (perfilError) throw perfilError;
         setSucesso("Cadastro de Anunciante salvo. Você já pode acessar seu painel.");
       }
+
+      if (codigoIndicacao.trim()) {
+        const { error: indicacaoError } = await db.rpc("registrar_indicacao", {
+          p_codigo: codigoIndicacao.trim().toUpperCase(),
+        });
+        if (indicacaoError) throw new Error(`Cadastro salvo, mas o código de indicação não foi aceito: ${indicacaoError.message}`);
+      }
     } catch (err) {
       setErro(err instanceof Error ? err.message : "Não foi possível salvar seu cadastro.");
     } finally {
@@ -232,6 +240,13 @@ function CompletarCadastro() {
             <div className="space-y-1"><Label htmlFor="produto">Tipo de produto ou serviço divulgado</Label><Input id="produto" required value={tipoProduto} onChange={(e) => setTipoProduto(e.target.value)} placeholder="Ex.: moda, alimentação, tecnologia..." /></div>
           </section>
         )}
+
+        <section className="space-y-2 rounded-lg border border-border p-4">
+          <h2 className="font-semibold text-foreground">Código de indicação (opcional)</h2>
+          <Label htmlFor="codigo-indicacao">Se alguém convidou você, informe o código</Label>
+          <Input id="codigo-indicacao" value={codigoIndicacao} onChange={(e) => setCodigoIndicacao(e.target.value.toUpperCase())} maxLength={10} autoCapitalize="characters" placeholder="Ex.: A1B2C3D4E5" />
+          <p className="text-xs text-muted-foreground">A indicação é direta, de um único nível. O bônus segue percentual configurável e não é liberado automaticamente ao cadastrar.</p>
+        </section>
 
         <section className="space-y-3 rounded-lg border border-border p-4">
           <h2 className="font-semibold text-foreground">Contrato de prestação de serviços — versão {CONTRATO_VERSAO}</h2>
