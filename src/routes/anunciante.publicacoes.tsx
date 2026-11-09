@@ -131,7 +131,7 @@ function PublicacoesAnunciante() {
 
   async function duplicar(id: string) {
     setSalvando(true); setErro(""); setMensagem("");
-    const { data, error } = await db.rpc("duplicar_publicacao", { p_publicacao_id: id });
+    const { error } = await db.rpc("duplicar_publicacao", { p_publicacao_id: id });
     setSalvando(false);
     if (error) setErro(error.message || "Não foi possível duplicar a publicação.");
     else { setMensagem("Nova versão criada como rascunho."); await carregar(); }
