@@ -30,7 +30,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = public
-as $
+as $function$
 begin
   if new.usuario_id <> (select auth.uid()) then
     if not (select private.has_role('admin'::app_role)) then
@@ -50,7 +50,7 @@ begin
 
   return new;
 end;
-$;
+$function$;
 
 drop trigger if exists validar_documento_por_papel_trigger on public.documentos_usuarios;
 create trigger validar_documento_por_papel_trigger
