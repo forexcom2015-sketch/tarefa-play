@@ -16,6 +16,10 @@ export const Route = createFileRoute("/validador")({
       db.from("contas_pix").select("aprovado").eq("usuario_id", auth.user.id).maybeSingle(),
       db.from("contas_sociais").select("status").eq("usuario_id", auth.user.id).eq("canal", "instagram").maybeSingle(),
     ]);
+    const consultaComErro = [contrato, interesses, pix, social].find((resultado) => resultado.error);
+    if (consultaComErro?.error) {
+      throw new Error("Não foi possível validar as aprovações do cadastro. Tente novamente.");
+    }
     if (!contrato.data?.length || (interesses.data?.length ?? 0) < 3 || pix.data?.aprovado !== true || social.data?.status !== "aprovada") {
       throw redirect({ to: "/cadastro/completar" });
     }
