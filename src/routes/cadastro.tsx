@@ -9,9 +9,8 @@ import { Logo } from "@/components/AreaLayout";
 type Perfil = "validador" | "anunciante";
 
 export const Route = createFileRoute("/cadastro")({
-  validateSearch: (s: Record<string, unknown>): { perfil?: Perfil } => ({
-    perfil: s.perfil === "anunciante" ? "anunciante" : s.perfil === "validador" ? "validador" : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { perfil?: Perfil } =>
+    s["perfil"] === "anunciante" || s["perfil"] === "validador" ? { perfil: s["perfil"] } : {},
   head: () => ({
     meta: [
       { title: "Criar conta — Tarefa-Play" },
