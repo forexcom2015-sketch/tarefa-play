@@ -30,7 +30,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = public
-as $
+as $function$
 declare
   _papel public.app_role;
 begin
@@ -53,7 +53,7 @@ begin
 
   return new;
 end;
-$;
+$function$;
 
 drop trigger if exists validar_documento_por_papel_trigger on public.documentos_usuarios;
 create trigger validar_documento_por_papel_trigger
