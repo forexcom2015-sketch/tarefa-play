@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/cadastro")({
 });
 
 function Cadastro() {
+  const pathname = useLocation({ select: (location) => location.pathname });
   const search = Route.useSearch();
   const [perfil, setPerfil] = useState<Perfil>(search.perfil ?? "validador");
   const [nome, setNome] = useState("");
@@ -46,6 +47,8 @@ function Cadastro() {
     if (error) return setErro(error.message);
     setEnviado(true);
   }
+
+  if (pathname !== "/cadastro") return <Outlet />;
 
   if (enviado) {
     return (
