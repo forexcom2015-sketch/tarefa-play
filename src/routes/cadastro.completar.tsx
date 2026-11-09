@@ -97,7 +97,7 @@ function CompletarCadastro() {
     if (!papel) return setErro("Não foi possível identificar o perfil desta conta.");
     if (!maiorDe18) return setErro("Confirme que você tem 18 anos ou mais.");
     if (!aceite) return setErro("É necessário aceitar o contrato para continuar.");
-    if (!nome.trim() || !telefone.trim() || !documento.trim()) return setErro("Preencha nome, telefone e CPF.");
+    if (!nome.trim() || !telefone.trim() || !documento.trim()) return setErro(`Preencha nome, telefone e ${tipoDocumento.toUpperCase()}.`);
     if (!documentoValido) return setErro(tipoDocumento === "cpf" ? "Informe um CPF válido." : "Informe um CNPJ válido.");
     if (papel === "validador" && tipoDocumento !== "cpf") return setErro("O cadastro de Validador exige CPF.");
     if (papel === "validador" && (interesses.length < 3 || interesses.length > 8)) return setErro("Selecione de 3 a 8 interesses.");
@@ -156,7 +156,7 @@ function CompletarCadastro() {
         }, { onConflict: "usuario_id,canal" });
         if (socialError) throw socialError;
 
-        setSucesso("Cadastro enviado. A confirmação de telefone é simulada nesta fase; Pix e Instagram aguardam análise do Admin. As tarefas permanecem bloqueadas até as aprovações.");
+        setSucesso("Cadastro enviado. A verificação automática do telefone ainda não está ativa nesta fase; Pix e Instagram aguardam análise do Admin. As tarefas permanecem bloqueadas até as aprovações.");
       } else {
         const { error: perfilError } = await db.from("cadastro_anunciantes").upsert({
           usuario_id: user.id, nome_empresa: nome, telefone, tipo_produto: tipoProduto, maior_de_18: maiorDe18,
