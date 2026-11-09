@@ -321,8 +321,9 @@ declare
   v_primeiro_pagamento boolean;
   v_disponivel_em timestamptz;
 begin
-  if auth.uid() is null or not (select private.has_role('admin'::app_role)) then
-    raise exception 'Somente o Admin pode confirmar pagamentos internos nesta fase.';
+  if coalesce(auth.role(), '') <> 'service_role'
+    and (auth.uid() is null or not (select private.has_role('admin'::app_role))) then
+    raise exception 'Somente o Admin ou o backend autorizado pode confirmar pagamentos internos.';
   end if;
   if p_valor_validador is null or p_valor_validador <= 0 or p_anunciante_id = p_validador_id or p_referencia_id is null then
     raise exception 'Parametros de pagamento invalidos.';
@@ -510,8 +511,9 @@ declare
   v_carteira public.carteiras;
   v_bonus numeric(14,2);
 begin
-  if auth.uid() is null or not (select private.has_role('admin'::app_role)) then
-    raise exception 'Somente o Admin pode autorizar bonus de indicacao nesta fase.';
+  if coalesce(auth.role(), '') <> 'service_role'
+    and (auth.uid() is null or not (select private.has_role('admin'::app_role))) then
+    raise exception 'Somente o Admin ou o backend autorizado pode autorizar bonus de indicacao.';
   end if;
   if p_indicado_id is null or p_referencia_id is null or p_base_calculo is null or p_base_calculo <= 0 then
     raise exception 'Dados para calculo do bonus invalidos.';
