@@ -224,6 +224,26 @@ begin
 end;
 $$;
 
+create or replace function public.obter_pacote_validacao_minimo()
+returns numeric
+language plpgsql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $
+declare
+  v_valor numeric(14,2);
+begin
+  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+    raise exception 'Somente Anunciantes autenticados podem consultar o pacote minimo.';
+  end if;
+  select greatest(coalesce(valor::numeric, 100), 0.01) into v_valor
+  from public.configuracoes
+  where chave = 'pacote_validacao_minimo';
+  return coalesce(v_valor, 100);
+end;
+$;
+
 create or replace function public.duplicar_publicacao(p_publicacao_id uuid)
 returns uuid
 language plpgsql
@@ -325,8 +345,10 @@ end;
 $$;
 
 revoke all on function public.estimar_validadores_disponiveis(uuid) from public, anon;
+revoke all on function public.obter_pacote_validacao_minimo() from public, anon;
 revoke all on function public.duplicar_publicacao(uuid) from public, anon;
 revoke all on function public.iniciar_rodada_validacao(uuid) from public, anon;
 grant execute on function public.estimar_validadores_disponiveis(uuid) to authenticated;
+grant execute on function public.obter_pacote_validacao_minimo() to authenticated;
 grant execute on function public.duplicar_publicacao(uuid) to authenticated;
 grant execute on function public.iniciar_rodada_validacao(uuid) to authenticated;
