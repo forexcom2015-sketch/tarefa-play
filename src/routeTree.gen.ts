@@ -62,9 +62,9 @@ const AnuncianteIndexRoute = AnuncianteIndexRouteImport.update({
   getParentRoute: () => AnuncianteRoute,
 } as any)
 const CadastroCompletarRoute = CadastroCompletarRouteImport.update({
-  id: '/cadastro/completar',
-  path: '/cadastro/completar',
-  getParentRoute: () => rootRouteImport,
+  id: '/completar',
+  path: '/completar',
+  getParentRoute: () => CadastroRoute,
 } as any)
 const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
   id: '/cadastros',
@@ -149,10 +149,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AnuncianteRoute: typeof AnuncianteRouteWithChildren
-  CadastroRoute: typeof CadastroRoute
+  CadastroRoute: typeof CadastroRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   ValidadorRoute: typeof ValidadorRouteWithChildren
-  CadastroCompletarRoute: typeof CadastroCompletarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -215,10 +214,10 @@ declare module '@tanstack/react-router' {
     }
     '/cadastro/completar': {
       id: '/cadastro/completar'
-      path: '/cadastro/completar'
+      path: '/completar'
       fullPath: '/cadastro/completar'
       preLoaderRoute: typeof CadastroCompletarRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof CadastroRoute
     }
     '/admin/cadastros': {
       id: '/admin/cadastros'
@@ -236,6 +235,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface CadastroRouteChildren {
+  CadastroCompletarRoute: typeof CadastroCompletarRoute
+}
+
+const CadastroRouteChildren: CadastroRouteChildren = {
+  CadastroCompletarRoute: CadastroCompletarRoute,
+}
+
+const CadastroRouteWithChildren = CadastroRoute._addFileChildren(CadastroRouteChildren)
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
@@ -277,7 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AnuncianteRoute: AnuncianteRouteWithChildren,
-  CadastroRoute: CadastroRoute,
+  CadastroRoute: CadastroRouteWithChildren,
   EntrarRoute: EntrarRoute,
   ValidadorRoute: ValidadorRouteWithChildren,
   CadastroCompletarRoute: CadastroCompletarRoute,
