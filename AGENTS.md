@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Role-gated areas (/validador, /anunciante, /admin) use `ssr: false` + `beforeLoad: exigirPapel(...)` from src/lib/papel.ts; session lives in localStorage so SSR cannot gate.
+- Signup role comes from `perfil` metadata via the `handle_new_user` trigger, limited to validador/anunciante; admin is only granted manually in user_roles.
