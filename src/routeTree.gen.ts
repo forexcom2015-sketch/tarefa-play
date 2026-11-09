@@ -20,6 +20,10 @@ import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AnuncianteIndexRouteImport } from './routes/anunciante.index'
 import { Route as ValidadorIndexRouteImport } from './routes/validador.index'
+import { Route as ValidadorMinhasTarefasRouteImport } from './routes/validador.minhas-tarefas'
+import { Route as ValidadorGanhosRouteImport } from './routes/validador.ganhos'
+import { Route as ValidadorPerfilRouteImport } from './routes/validador.perfil'
+import { Route as AdminTiposTarefaRouteImport } from './routes/admin.tipos-tarefa'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
