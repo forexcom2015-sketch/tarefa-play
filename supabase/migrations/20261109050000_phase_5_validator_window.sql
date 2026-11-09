@@ -126,6 +126,11 @@ using (
         and i.categoria_id = tarefas.categoria_id
     )
   )
+  or exists (
+    select 1 from public.habilitacoes h
+    where h.tarefa_id = tarefas.id
+      and h.validador_id = (select auth.uid())
+  )
 );
 
 drop policy if exists tarefas_admin_manage on public.tarefas;
