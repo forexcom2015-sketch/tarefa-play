@@ -70,14 +70,7 @@ using (
     where h.id = chamados_token.habilitacao_id
       and h.validador_id = (select auth.uid())
   )
-  or exists (
-    select 1
-    from public.habilitacoes h
-    join public.tarefas t on t.id = h.tarefa_id
-    join public.publicacoes p on p.id = t.publicacao_id
-    where h.id = chamados_token.habilitacao_id
-      and p.anunciante_id = (select auth.uid())
-  )
+  or (select private.anunciante_do_chamado_token(chamados_token.habilitacao_id))
 );
 
 drop policy if exists tarefas_select_advertiser_owner on public.tarefas;
@@ -91,18 +84,27 @@ using (
   )
 );
 
-drop policy if exists habilitacoes_select_advertiser_owner on public.habilitacoes;
-create policy habilitacoes_select_advertiser_owner on public.habilitacoes
-for select to authenticated
-using (
-  exists (
+-- A relacao de propriedade e consultada por helper privado para nao expor
+-- validador_id ou outros campos internos da habilitacao ao Anunciante.
+create or replace function private.anunciante_do_chamado_token(p_habilitacao_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $
+  select exists (
     select 1
-    from public.tarefas t
+    from public.habilitacoes h
+    join public.tarefas t on t.id = h.tarefa_id
     join public.publicacoes p on p.id = t.publicacao_id
-    where t.id = habilitacoes.tarefa_id
+    where h.id = p_habilitacao_id
       and p.anunciante_id = (select auth.uid())
-  )
-);
+  );
+$;
+revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon, authenticated;
+
+drop policy if exists habilitacoes_select_advertiser_owner on public.habilitacoes;
 
 revoke all on public.tokens_tarefa, public.chamados_token from anon, authenticated;
 grant select on public.chamados_token to authenticated;
@@ -251,6 +253,40 @@ $$;
 
 revoke all on function public.listar_habilitacoes_tarefa(uuid) from public, anon;
 grant execute on function public.listar_habilitacoes_tarefa(uuid) to authenticated;
+
+create or replace function public.listar_chamados_token_anunciante()
+returns table (
+  chamado_id uuid,
+  handle text,
+  motivo text,
+  link_comentario text,
+  evidencia text,
+  status text,
+  prazo timestamptz,
+  resposta_anunciante text
+)
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $
+begin
+  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+    raise exception 'Acesso restrito ao Anunciante.';
+  end if;
+  return query
+  select c.id, h.handle, c.motivo, c.link_comentario, c.evidencia,
+         c.status, c.prazo, c.resposta_anunciante
+  from public.chamados_token c
+  join public.habilitacoes h on h.id = c.habilitacao_id
+  join public.tarefas t on t.id = h.tarefa_id
+  join public.publicacoes p on p.id = t.publicacao_id
+  where p.anunciante_id = auth.uid()
+    and c.status in ('aguardando_anunciante','em_suporte')
+  order by c.criado_em;
+end;
+$;
+revoke all on function public.listar_chamados_token_anunciante() from public, anon;
+grant execute on function public.listar_chamados_token_anunciante() to authenticated;
 
 -- Emite um token novo por habilitacao elegivel. Reemitir invalida o anterior.
 -- O codigo puro so existe no retorno desta chamada e nao e persistido.
@@ -462,7 +498,7 @@ end;
 $$;
 
 revoke all on function public.pagar_tarefa(uuid,uuid,numeric,uuid) from public, anon;
-grant execute on function public.pagar_tarefa(uuid,uuid,numeric,uuid) to authenticated;
+grant execute on function public.pagar_tarefa(uuid,uuid,numeric,uuid) to authenticated, service_role;
 
 -- Valida codigo de uso unico, pertencente ao Validador autenticado.
 create or replace function public.validar_token_tarefa(p_habilitacao_id uuid, p_codigo text)
@@ -735,7 +771,6 @@ begin
   where id = p_chamado_id and status = 'em_suporte'
   for update;
   if v_chamado.id is null then raise exception 'Chamado nao esta na fila do suporte.'; end if;
-  if v_chamado.prazo <= now() then raise exception 'O prazo de decisao do suporte expirou.'; end if;
 
   select * into v_habilitacao from public.habilitacoes
   where id = v_chamado.habilitacao_id for update;
