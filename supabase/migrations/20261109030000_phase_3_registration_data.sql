@@ -23,6 +23,43 @@ create table if not exists public.documentos_usuarios (
 );
 create unique index if not exists documentos_usuarios_documento_unique
   on public.documentos_usuarios (documento_normalizado);
+-- O tipo de documento deve corresponder ao papel persistido no banco.
+-- A validação não confia no perfil enviado pelo navegador.
+create or replace function public.validar_documento_por_papel()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public
+as $function$
+declare
+  _papel public.app_role;
+begin
+  select role into _papel
+  from public.user_roles
+  where user_id = new.usuario_id
+  limit 1;
+
+  if _papel is null then
+    raise exception 'Não foi possível identificar o papel desta conta.';
+  end if;
+
+  if _papel = 'validador' and new.tipo_documento <> 'cpf' then
+    raise exception 'O cadastro de Validador exige CPF.';
+  end if;
+
+  if _papel = 'anunciante' and new.tipo_documento not in ('cpf', 'cnpj') then
+    raise exception 'O cadastro de Anunciante exige CPF ou CNPJ.';
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists validar_documento_por_papel_trigger on public.documentos_usuarios;
+create trigger validar_documento_por_papel_trigger
+before insert or update of usuario_id, tipo_documento on public.documentos_usuarios
+for each row execute function public.validar_documento_por_papel();
+
 
 create table if not exists public.cadastro_validadores (
   usuario_id uuid primary key references auth.users(id) on delete cascade,

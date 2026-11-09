@@ -44,12 +44,19 @@ function Entrar() {
     if (papel === "validador" && auth.user) {
       const [contrato, perfil, interesses, pix, social] = await Promise.all([
         db.from("aceites_contrato").select("id").eq("usuario_id", auth.user.id).limit(1),
-        db.from("cadastro_validadores").select("usuario_id").eq("usuario_id", auth.user.id).maybeSingle(),
+        db.from("cadastro_validadores").select("usuario_id,maior_de_18,consentimento_lgpd_interesses").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("interesses_validador").select("categoria_id").eq("usuario_id", auth.user.id),
         db.from("contas_pix").select("aprovado").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("contas_sociais").select("status").eq("usuario_id", auth.user.id).eq("canal", "instagram").maybeSingle(),
+        db.from("documentos_usuarios").select("tipo_documento").eq("usuario_id", auth.user.id).maybeSingle(),
       ]);
-      const cadastroBaseCompleto = Boolean(contrato.data?.length && perfil.data && (interesses.data?.length ?? 0) >= 3 && pix.data && social.data);
+      const consultaComErro = [contrato, perfil, interesses, pix, social, documento].find((resultado) => resultado.error);
+      if (consultaComErro?.error) {
+        setCarregando(false);
+        setErro("Não foi possível validar seu cadastro agora. Tente novamente em instantes.");
+        return;
+      }
+      const cadastroBaseCompleto = Boolean(contrato.data?.length && perfil.data?.maior_de_18 === true && perfil.data?.consentimento_lgpd_interesses === true && documento.data?.tipo_documento === "cpf" && (interesses.data?.length ?? 0) >= 3 && pix.data && social.data);
       const aprovadoParaTarefas = pix.data?.aprovado === true && social.data?.status === "aprovada";
       if (!cadastroBaseCompleto || !aprovadoParaTarefas) {
         setCarregando(false);
@@ -60,10 +67,16 @@ function Entrar() {
     if (papel === "anunciante" && auth.user) {
       const [contrato, perfil, documento] = await Promise.all([
         db.from("aceites_contrato").select("id").eq("usuario_id", auth.user.id).limit(1),
-        db.from("cadastro_anunciantes").select("usuario_id").eq("usuario_id", auth.user.id).maybeSingle(),
-        db.from("documentos_usuarios").select("usuario_id").eq("usuario_id", auth.user.id).maybeSingle(),
+        db.from("cadastro_anunciantes").select("usuario_id,maior_de_18").eq("usuario_id", auth.user.id).maybeSingle(),
+        db.from("documentos_usuarios").select("usuario_id,tipo_documento").eq("usuario_id", auth.user.id).maybeSingle(),
       ]);
-      if (!contrato.data?.length || !perfil.data || !documento.data) {
+      const consultaComErro = [contrato, perfil, documento].find((resultado) => resultado.error);
+      if (consultaComErro?.error) {
+        setCarregando(false);
+        setErro("Não foi possível validar seu cadastro agora. Tente novamente em instantes.");
+        return;
+      }
+      if (!contrato.data?.length || perfil.data?.maior_de_18 !== true || !documento.data || !["cpf", "cnpj"].includes(documento.data.tipo_documento)) {
         setCarregando(false);
         navigate({ to: "/cadastro/completar" });
         return;

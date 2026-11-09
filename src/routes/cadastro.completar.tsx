@@ -97,7 +97,7 @@ function CompletarCadastro() {
     if (!papel) return setErro("Não foi possível identificar o perfil desta conta.");
     if (!maiorDe18) return setErro("Confirme que você tem 18 anos ou mais.");
     if (!aceite) return setErro("É necessário aceitar o contrato para continuar.");
-    if (!nome.trim() || !telefone.trim() || !documento.trim()) return setErro("Preencha nome, telefone e CPF.");
+    if (!nome.trim() || !telefone.trim() || !documento.trim()) return setErro(`Preencha nome, telefone e ${tipoDocumento.toUpperCase()}.`);
     if (!documentoValido) return setErro(tipoDocumento === "cpf" ? "Informe um CPF válido." : "Informe um CNPJ válido.");
     if (papel === "validador" && tipoDocumento !== "cpf") return setErro("O cadastro de Validador exige CPF.");
     if (papel === "validador" && (interesses.length < 3 || interesses.length > 8)) return setErro("Selecione de 3 a 8 interesses.");
@@ -120,7 +120,7 @@ function CompletarCadastro() {
 
       const { error: aceiteError } = await db.from("aceites_contrato").upsert({
         usuario_id: user.id, versao: CONTRATO_VERSAO,
-      }, { onConflict: "usuario_id,versao" });
+      }, { onConflict: "usuario_id,versao", ignoreDuplicates: true });
       if (aceiteError) throw aceiteError;
 
       if (papel === "validador") {
@@ -156,7 +156,7 @@ function CompletarCadastro() {
         }, { onConflict: "usuario_id,canal" });
         if (socialError) throw socialError;
 
-        setSucesso("Cadastro enviado. A confirmação de telefone é simulada nesta fase; Pix e Instagram aguardam análise do Admin. As tarefas permanecem bloqueadas até as aprovações.");
+        setSucesso("Cadastro enviado. A verificação automática do telefone ainda não está ativa nesta fase; Pix e Instagram aguardam análise do Admin. As tarefas permanecem bloqueadas até as aprovações.");
       } else {
         const { error: perfilError } = await db.from("cadastro_anunciantes").upsert({
           usuario_id: user.id, nome_empresa: nome, telefone, tipo_produto: tipoProduto, maior_de_18: maiorDe18,
@@ -189,8 +189,10 @@ function CompletarCadastro() {
           <h2 className="font-semibold text-foreground">1. Dados pessoais</h2>
           <div className="space-y-1"><Label htmlFor="nome">Nome completo / razão social</Label><Input id="nome" required value={nome} onChange={(e) => setNome(e.target.value)} /></div>
           <div className="space-y-1"><Label htmlFor="telefone">Telefone</Label><Input id="telefone" required value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" /></div>
-          <div className="space-y-1"><Label htmlFor="cpf">CPF</Label><Input id="cpf" required value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="000.000.000-00" /></div>
-          {documento && <p className={cpfValido ? "text-xs text-green-700" : "text-xs text-destructive"}>{cpfValido ? "CPF válido" : "Confira o CPF informado"}</p>}
+          <p className="text-xs text-muted-foreground">A validação automática do telefone ainda não está ativa nesta fase. Não informe códigos recebidos por SMS ou WhatsApp neste formulário.</p>
+          {papel === "anunciante" && <div className="space-y-1"><Label htmlFor="tipo-documento">Tipo de documento</Label><select id="tipo-documento" value={tipoDocumento} onChange={(e) => { setTipoDocumento(e.target.value as "cpf" | "cnpj"); setDocumento(""); }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="cpf">CPF</option><option value="cnpj">CNPJ</option></select></div>}
+          <div className="space-y-1"><Label htmlFor="documento">{tipoDocumento.toUpperCase()}</Label><Input id="documento" required inputMode="numeric" maxLength={tipoDocumento === "cpf" ? 14 : 18} value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder={tipoDocumento === "cpf" ? "000.000.000-00" : "00.000.000/0000-00"} /></div>
+          {documento && <p className={documentoValido ? "text-xs text-green-700" : "text-xs text-destructive"}>{documentoValido ? `${tipoDocumento.toUpperCase()} válido` : `Confira o ${tipoDocumento.toUpperCase()} informado`}</p>}
           <label className="flex items-start gap-2 text-sm text-foreground"><input type="checkbox" checked={maiorDe18} onChange={(e) => setMaiorDe18(e.target.checked)} className="mt-1" /> Confirmo que tenho 18 anos ou mais.</label>
         </section>
 
