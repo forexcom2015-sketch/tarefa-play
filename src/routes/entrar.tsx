@@ -44,13 +44,13 @@ function Entrar() {
     if (papel === "validador" && auth.user) {
       const [contrato, perfil, interesses, pix, social] = await Promise.all([
         db.from("aceites_contrato").select("id").eq("usuario_id", auth.user.id).limit(1),
-        db.from("cadastro_validadores").select("usuario_id").eq("usuario_id", auth.user.id).maybeSingle(),
+        db.from("cadastro_validadores").select("usuario_id,telefone_verificado").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("interesses_validador").select("categoria_id").eq("usuario_id", auth.user.id),
         db.from("contas_pix").select("aprovado").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("contas_sociais").select("status").eq("usuario_id", auth.user.id).eq("canal", "instagram").maybeSingle(),
       ]);
       const cadastroBaseCompleto = Boolean(contrato.data?.length && perfil.data && (interesses.data?.length ?? 0) >= 3 && pix.data && social.data);
-      const aprovadoParaTarefas = pix.data?.aprovado === true && social.data?.status === "aprovada";
+      const aprovadoParaTarefas = perfil.data?.telefone_verificado === true && pix.data?.aprovado === true && social.data?.status === "aprovada";
       if (!cadastroBaseCompleto || !aprovadoParaTarefas) {
         setCarregando(false);
         navigate({ to: "/cadastro/completar" });
