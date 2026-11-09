@@ -141,10 +141,6 @@ export interface FileRoutesByFullPath {
   '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
   '/anunciante/carteira': typeof AnuncianteCarteiraRoute
   '/anunciante/configuracoes': typeof AnuncianteConfiguracoesRoute
-  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
-  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
-  '/anunciante/carteira': typeof AnuncianteCarteiraRoute
-  '/anunciante/configuracoes': typeof AnuncianteConfiguracoesRoute
   '/validador/': typeof ValidadorIndexRoute
   '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
   '/validador/ganhos': typeof ValidadorGanhosRoute
@@ -178,6 +174,10 @@ export interface FileRoutesById {
   '/validador': typeof ValidadorRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/anunciante/': typeof AnuncianteIndexRoute
+  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
+  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/anunciante/carteira': typeof AnuncianteCarteiraRoute
+  '/anunciante/configuracoes': typeof AnuncianteConfiguracoesRoute
   '/validador/': typeof ValidadorIndexRoute
   '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
@@ -197,10 +197,6 @@ export interface FileRouteTypes {
     | '/validador'
     | '/admin/'
     | '/anunciante/'
-    | '/anunciante/publicacoes'
-    | '/anunciante/validacoes'
-    | '/anunciante/carteira'
-    | '/anunciante/configuracoes'
     | '/anunciante/publicacoes'
     | '/anunciante/validacoes'
     | '/anunciante/carteira'
