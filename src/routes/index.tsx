@@ -341,11 +341,11 @@ function Index() {
             <p className="mt-2 text-xs text-muted-foreground">Opiniões independentes para decisões melhores.</p>
           </div>
           <nav aria-label="Links do rodapé" className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted-foreground">
-            <Link to="/termos" className="hover:text-foreground">Termos</Link>
-            <Link to="/privacidade" className="hover:text-foreground">Privacidade</Link>
-            <a href="mailto:contato@tarefa-play.com" className="hover:text-foreground">Contato</a>
+            <a href="#documentos-legais" className="hover:text-foreground">Termos</a>
+            <a href="#documentos-legais" className="hover:text-foreground">Privacidade</a>
+            <a href="#contato" className="hover:text-foreground">Contato</a>
           </nav>
-          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Tarefa-Play</p>
+          <div className="text-xs text-muted-foreground md:text-right"><p id="documentos-legais">Termos e Política de Privacidade serão publicados antes da abertura pública.</p><p id="contato" className="mt-1">Canal de contato em preparação.</p><p className="mt-2">© {new Date().getFullYear()} Tarefa-Play</p></div>
         </div>
       </footer>
     </div>
