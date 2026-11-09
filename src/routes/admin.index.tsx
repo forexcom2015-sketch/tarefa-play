@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type Aba = "configuracoes" | "categorias" | "auditoria" | "suporte";
+type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
 type Categoria = { id: string; nome: string; ativa: boolean };
 type RegistroAuditoria = {
@@ -13,11 +13,19 @@ type RegistroAuditoria = {
   dados: unknown;
   criado_em: string;
 };
+type SaquePendente = {
+  id: string;
+  carteira_id: string;
+  valor: number | string;
+  status: "solicitado" | "pago" | "rejeitado";
+  solicitado_em: string;
+};
 
 const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
   { id: "categorias", titulo: "Categorias" },
   { id: "auditoria", titulo: "Auditoria" },
+  { id: "financeiro", titulo: "Financeiro" },
   { id: "suporte", titulo: "Suporte" },
 ];
 
@@ -44,6 +52,9 @@ function PainelAdmin() {
   const [configuracoes, setConfiguracoes] = useState<Configuracao[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [auditoria, setAuditoria] = useState<RegistroAuditoria[]>([]);
+  const [saques, setSaques] = useState<SaquePendente[]>([]);
+  const [carregandoFinanceiro, setCarregandoFinanceiro] = useState(false);
+  const [erroFinanceiro, setErroFinanceiro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState<string | null>(null);
   const [mensagem, setMensagem] = useState("");
@@ -71,6 +82,39 @@ function PainelAdmin() {
   useEffect(() => {
     void carregar();
   }, [carregar]);
+
+  const carregarSaques = useCallback(async () => {
+    setCarregandoFinanceiro(true);
+    setErroFinanceiro("");
+    const { data, error: saqueError } = await (supabase as any)
+      .from("saques")
+      .select("id,carteira_id,valor,status,solicitado_em")
+      .eq("status", "solicitado")
+      .order("solicitado_em", { ascending: true });
+    if (saqueError) {
+      setErroFinanceiro("O módulo financeiro ainda não está disponível. Confirme se a migration da Fase 4 foi aplicada no Supabase.");
+      setSaques([]);
+    } else {
+      setSaques((data ?? []) as SaquePendente[]);
+    }
+    setCarregandoFinanceiro(false);
+  }, []);
+
+  useEffect(() => {
+    if (aba === "financeiro") void carregarSaques();
+  }, [aba, carregarSaques]);
+
+  async function marcarSaquePago(id: string) {
+    setSalvando(id);
+    setErroFinanceiro("");
+    const { error: pagamentoError } = await (supabase as any).rpc("marcar_saque_pago", { p_saque_id: id });
+    setSalvando(null);
+    if (pagamentoError) {
+      setErroFinanceiro(pagamentoError.message || "Não foi possível atualizar o saque.");
+    } else {
+      await carregarSaques();
+    }
+  }
 
   async function salvarConfiguracao(item: Configuracao, valor: string) {
     setSalvando(item.chave);
@@ -216,6 +260,35 @@ function PainelAdmin() {
             ))}
             {!carregando && auditoria.length === 0 && <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Nenhum evento de auditoria registrado até o momento.</p>}
           </div>
+        </section>
+      )}
+
+      {aba === "financeiro" && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Saques solicitados</h2>
+              <p className="text-sm text-muted-foreground">A baixa é simulada e exclusiva do Admin. Nenhuma transferência Pix é realizada.</p>
+            </div>
+            <button type="button" onClick={() => void carregarSaques()} disabled={carregandoFinanceiro} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50">
+              {carregandoFinanceiro ? "Atualizando..." : "Atualizar"}
+            </button>
+          </div>
+          {erroFinanceiro && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erroFinanceiro}</p>}
+          {carregandoFinanceiro ? <p role="status" className="text-sm text-muted-foreground">Carregando solicitações...</p> : saques.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Nenhum saque aguardando revisão.</p>
+          ) : saques.map((saque) => (
+            <article key={saque.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+              <div>
+                <p className="font-semibold text-foreground">{Number(saque.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                <p className="text-xs text-muted-foreground">Solicitado em {new Date(saque.solicitado_em).toLocaleString("pt-BR")}</p>
+                <p className="break-all text-xs text-muted-foreground">Carteira: {saque.carteira_id}</p>
+              </div>
+              <button type="button" disabled={salvando === saque.id} onClick={() => void marcarSaquePago(saque.id)} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+                {salvando === saque.id ? "Registrando..." : "Marcar como pago (mock)"}
+              </button>
+            </article>
+          ))}
         </section>
       )}
 
