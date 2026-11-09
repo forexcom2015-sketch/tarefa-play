@@ -83,7 +83,7 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
       db.rpc("obter_saque_minimo"),
     ]);
 
-    const falha = carteira.error ?? saldo.error ?? saldoPendente.error ?? saldoReservado.error ?? extrato.error ?? indicacoesResult.error ?? nivelResult.error ?? tarefasResult.error ?? minimoResult.error;
+    const falha = carteira.error ?? saldo.error ?? saldoPendente.error ?? saldoReservado.error ?? extrato.error ?? indicacoesResult.error ?? pix.error ?? nivelResult.error ?? tarefasResult.error ?? minimoResult.error;
     if (falha) {
       setErro("Não foi possível carregar os dados financeiros. Confira se as migrations da Fase 4 foram aplicadas e se as permissões estão corretas.");
       setCarregando(false);
@@ -187,7 +187,7 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
                 <p className="mt-2 text-2xl font-bold text-primary">{nivel}</p>
                 <p className="text-sm text-muted-foreground">{tarefasValidas} pagamentos de tarefas registrados</p>
                 <div className="mt-4 space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground"><span>Progresso até o saque mínimo</span><span>{Math.min(100, Math.round((disponivel / saqueMinimo) * 100))}%</span></div>
+                  <div className="flex justify-between text-xs text-muted-foreground"><span>Progresso até o saque mínimo</span><span>{Math.min(100, Math.round((disponivel / Math.max(saqueMinimo, 0.01)) * 100))}%</span></div>
                   <div className="h-2 overflow-hidden rounded-full bg-muted">
                     <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.max(0, (disponivel / saqueMinimo) * 100))}%` }} />
                   </div>
