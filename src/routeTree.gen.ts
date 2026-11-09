@@ -258,7 +258,7 @@ export interface FileRouteTypes {
     | '/validador/executar/$habilitacaoId'
     | '/validador/token/$habilitacaoId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/anunciante/publicacoes' | '/anunciante/validacoes' | '/anunciante/carteira' | '/anunciante/configuracoes' | '/validador' | '/cadastro/completar' | '/admin/cadastros' | '/admin/tipos-tarefa' | '/validador/minhas-tarefas' | '/validador/ganhos' | '/validador/perfil' | '/validador/executar/$habilitacaoId'
+  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/anunciante/publicacoes' | '/anunciante/validacoes' | '/anunciante/carteira' | '/anunciante/configuracoes' | '/anunciante/tarefas' | '/anunciante/automacao' | '/validador' | '/cadastro/completar' | '/admin/cadastros' | '/admin/tipos-tarefa' | '/admin/chamados-token' | '/validador/minhas-tarefas' | '/validador/ganhos' | '/validador/perfil' | '/validador/executar/$habilitacaoId' | '/validador/token/$habilitacaoId'
   id:
     | '__root__'
     | '/'
