@@ -41,6 +41,7 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
   const [disponivel, setDisponivel] = useState(0);
   const [pendente, setPendente] = useState(0);
   const [reservado, setReservado] = useState(0);
+  const [saqueMinimo, setSaqueMinimo] = useState(100);
   const [codigoIndicacao, setCodigoIndicacao] = useState("");
   const [indicacoes, setIndicacoes] = useState(0);
   const [nivel, setNivel] = useState("Bronze");
@@ -69,7 +70,7 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
       return;
     }
 
-    const [carteira, saldo, saldoPendente, saldoReservado, extrato, pix, indicacoesResult, nivelResult, tarefasResult] = await Promise.all([
+    const [carteira, saldo, saldoPendente, saldoReservado, extrato, pix, indicacoesResult, nivelResult, tarefasResult, minimoResult] = await Promise.all([
       db.from("carteiras").select("codigo_indicacao").eq("usuario_id", auth.user.id).maybeSingle(),
       db.from("saldo_disponivel").select("saldo").eq("usuario_id", auth.user.id).maybeSingle(),
       db.from("saldo_pendente").select("saldo").eq("usuario_id", auth.user.id).maybeSingle(),
@@ -79,9 +80,10 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
       db.from("indicacoes").select("id", { count: "exact", head: true }).eq("indicador_id", auth.user.id),
       db.from("niveis").select("nome,tarefas_validas_minimas,ordem").eq("ativo", true).order("ordem"),
       db.from("lancamentos").select("id", { count: "exact", head: true }).eq("tipo", "pagamento_tarefa").gt("valor", 0),
+      db.rpc("obter_saque_minimo"),
     ]);
 
-    const falha = carteira.error ?? saldo.error ?? saldoPendente.error ?? saldoReservado.error ?? extrato.error ?? indicacoesResult.error ?? nivelResult.error ?? tarefasResult.error;
+    const falha = carteira.error ?? saldo.error ?? saldoPendente.error ?? saldoReservado.error ?? extrato.error ?? indicacoesResult.error ?? nivelResult.error ?? tarefasResult.error ?? minimoResult.error;
     if (falha) {
       setErro("Não foi possível carregar os dados financeiros. Confira se as migrations da Fase 4 foram aplicadas e se as permissões estão corretas.");
       setCarregando(false);
@@ -92,6 +94,7 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
     setDisponivel(Number((saldo.data as Resumo | null)?.saldo ?? 0));
     setPendente(Number((saldoPendente.data as Resumo | null)?.saldo ?? 0));
     setReservado(Number((saldoReservado.data as Resumo | null)?.saldo ?? 0));
+    setSaqueMinimo(Number(minimoResult.data ?? 100));
     setLancamentos((extrato.data ?? []) as Lancamento[]);
     setPixAprovado(pix.data?.aprovado === true);
     setIndicacoes(indicacoesResult.count ?? 0);
@@ -184,22 +187,22 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
                 <p className="mt-2 text-2xl font-bold text-primary">{nivel}</p>
                 <p className="text-sm text-muted-foreground">{tarefasValidas} pagamentos de tarefas registrados</p>
                 <div className="mt-4 space-y-1">
-                  <div className="flex justify-between text-xs text-muted-foreground"><span>Progresso até o saque mínimo</span><span>{Math.min(100, Math.round((disponivel / 100) * 100))}%</span></div>
+                  <div className="flex justify-between text-xs text-muted-foreground"><span>Progresso até o saque mínimo</span><span>{Math.min(100, Math.round((disponivel / saqueMinimo) * 100))}%</span></div>
                   <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.max(0, (disponivel / 100) * 100))}%` }} />
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.max(0, (disponivel / saqueMinimo) * 100))}%` }} />
                   </div>
-                  <p className="text-xs text-muted-foreground">{moeda(disponivel)} de R$ 100,00 disponíveis</p>
+                  <p className="text-xs text-muted-foreground">{moeda(disponivel)} de {moeda(saqueMinimo)} disponíveis</p>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">Os critérios dos níveis são configuráveis pela administração. A contagem acompanha os pagamentos registrados no livro-razão.</p>
               </article>
               <article className="rounded-xl border border-border bg-card p-4">
                 <h3 className="font-semibold text-foreground">Solicitar saque</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Mínimo atual: R$ 100,00. A conta Pix precisa estar aprovada e pertencer ao titular do CPF cadastrado.</p>
+                <p className="mt-1 text-sm text-muted-foreground">Mínimo atual: {moeda(saqueMinimo)}. A conta Pix precisa estar aprovada e pertencer ao titular do CPF cadastrado.</p>
                 <p className="mt-2 text-sm">Pix: <strong>{pixAprovado ? "Aprovado" : "Aguardando aprovação"}</strong></p>
                 <form onSubmit={solicitarSaque} className="mt-3 space-y-2">
                   <Label htmlFor="valor-saque">Valor do saque (R$)</Label>
-                  <Input id="valor-saque" type="number" min="100" max={disponivel} step="0.01" value={valor} onChange={(event) => setValor(event.target.value)} required />
-                  <Button type="submit" className="w-full" disabled={processando || !pixAprovado || disponivel < 100}>
+                  <Input id="valor-saque" type="number" min={saqueMinimo} max={disponivel} step="0.01" value={valor} onChange={(event) => setValor(event.target.value)} required />
+                  <Button type="submit" className="w-full" disabled={processando || !pixAprovado || disponivel < saqueMinimo}>
                     {processando ? "Enviando..." : "Solicitar saque"}
                   </Button>
                 </form>
