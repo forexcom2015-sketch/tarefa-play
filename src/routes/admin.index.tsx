@@ -21,7 +21,7 @@ type SaquePendente = {
   solicitado_em: string;
 };
 type Nivel = { id: string; nome: string; tarefas_validas_minimas: number; ordem: number };
-type PublicacaoRevisao = { id: string; legenda: string; preco: number | string; criado_em: string; categorias?: { nome: string } | null };
+type PublicacaoRevisao = { id: string; legenda: string; preco: number | string; criado_em: string; imagem_url: string | null; link: string | null; categorias?: { nome: string } | null };
 
 const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
@@ -129,7 +129,7 @@ function PainelAdmin() {
     setErroFinanceiro("");
     const { data, error } = await (supabase as any)
       .from("publicacoes")
-      .select("id,legenda,preco,criado_em,categorias(nome)")
+      .select("id,legenda,preco,criado_em,imagem_url,link,categorias(nome)")
       .eq("revisao_admin_pendente", true)
       .order("criado_em", { ascending: true });
     if (error) {
@@ -381,8 +381,10 @@ function PainelAdmin() {
           ) : publicacoesRevisao.map((item) => (
             <article key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
               <div className="min-w-0">
+                {item.imagem_url && <img src={item.imagem_url} alt="Criativo enviado para revisão" className="mb-3 max-h-40 max-w-full rounded-md object-contain" />}
                 <p className="font-semibold text-foreground">{item.categorias?.nome ?? "Curso"}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{item.legenda}</p>
+                {item.link && <a href={item.link} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary underline">Abrir link da oferta</a>}
                 <p className="mt-1 text-xs text-muted-foreground">Preço: {Number(item.preco).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · Recebida em {new Date(item.criado_em).toLocaleDateString("pt-BR")}</p>
               </div>
               <button type="button" disabled={salvando === item.id} onClick={() => void aprovarPublicacao(item.id)} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
