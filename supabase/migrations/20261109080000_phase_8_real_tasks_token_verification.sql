@@ -102,7 +102,8 @@ as $
       and p.anunciante_id = (select auth.uid())
   );
 $;
-revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon, authenticated;
+revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon;
+grant execute on function private.anunciante_do_chamado_token(uuid) to authenticated;
 
 drop policy if exists habilitacoes_select_advertiser_owner on public.habilitacoes;
 
