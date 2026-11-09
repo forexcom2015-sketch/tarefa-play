@@ -222,6 +222,19 @@ group by c.id, c.usuario_id;
 
 grant select on public.saldo_disponivel, public.saldo_pendente, public.saldo_reservado to authenticated;
 
+create or replace function public.obter_saque_minimo()
+returns numeric
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $
+  select coalesce((select valor::numeric from public.configuracoes where chave = 'saque_minimo'), 100);
+$;
+
+revoke all on function public.obter_saque_minimo() from public, anon;
+grant execute on function public.obter_saque_minimo() to authenticated;
+
 create or replace function public.depositar_mock(p_valor numeric)
 returns uuid
 language plpgsql
