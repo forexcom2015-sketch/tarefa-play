@@ -475,3 +475,64 @@ grant execute on function public.pagar_tarefa(uuid, uuid, numeric, uuid) to auth
 grant execute on function public.solicitar_saque(numeric) to authenticated;
 grant execute on function public.marcar_saque_pago(uuid) to authenticated;
 grant execute on function public.registrar_indicacao(text) to authenticated;
+
+-- Credito de indicacao em um unico nivel. A chamada e administrativa e
+-- idempotente; o bonus sai de uma base explicitamente informada pelo fluxo futuro.
+create unique index if not exists lancamentos_bonus_indicacao_referencia_unique
+  on public.lancamentos (carteira_id, referencia_tipo, referencia_id)
+  where tipo = 'bonus' and referencia_tipo = 'indicacao' and referencia_id is not null;
+
+create or replace function public.creditar_bonus_indicacao(p_indicado_id uuid, p_base_calculo numeric, p_referencia_id uuid)
+returns numeric
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+declare
+  v_indicacao public.indicacoes;
+  v_carteira public.carteiras;
+  v_bonus numeric(14,2);
+begin
+  if auth.uid() is null or not (select private.has_role('admin'::app_role)) then
+    raise exception 'Somente o Admin pode autorizar bonus de indicacao nesta fase.';
+  end if;
+  if p_indicado_id is null or p_referencia_id is null or p_base_calculo is null or p_base_calculo <= 0 then
+    raise exception 'Dados para calculo do bonus invalidos.';
+  end if;
+
+  select * into v_indicacao
+  from public.indicacoes
+  where indicado_id = p_indicado_id
+  for update;
+  if v_indicacao.id is null then
+    raise exception 'Indicacao nao encontrada.';
+  end if;
+  if v_indicacao.status = 'bonus_pago' then
+    raise exception 'O bonus desta indicacao ja foi pago.';
+  end if;
+
+  v_bonus := round(p_base_calculo * v_indicacao.bonus_percentual / 100, 2);
+  if v_bonus <= 0 then
+    update public.indicacoes set status = 'bonus_pago' where id = v_indicacao.id;
+    return 0;
+  end if;
+
+  insert into public.carteiras (usuario_id)
+  values (v_indicacao.indicador_id)
+  on conflict (usuario_id) do nothing;
+  select * into v_carteira from public.carteiras where usuario_id = v_indicacao.indicador_id;
+
+  insert into public.lancamentos (
+    carteira_id, tipo, valor, status, disponivel_em, referencia_tipo, referencia_id
+  )
+  values (
+    v_carteira.id, 'bonus', v_bonus, 'confirmado', now(), 'indicacao', v_indicacao.id
+  );
+
+  update public.indicacoes set status = 'bonus_pago' where id = v_indicacao.id;
+  return v_bonus;
+end;
+$$;
+
+revoke all on function public.creditar_bonus_indicacao(uuid, numeric, uuid) from public, anon;
+grant execute on function public.creditar_bonus_indicacao(uuid, numeric, uuid) to authenticated;
