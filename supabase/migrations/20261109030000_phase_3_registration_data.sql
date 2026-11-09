@@ -22,7 +22,40 @@ create table if not exists public.documentos_usuarios (
   )
 );
 create unique index if not exists documentos_usuarios_documento_unique
-  on public.documentos_usuarios (documento_normalizado);
+  on public.documentos_usuarios (tipo_documento, documento_normalizado);
+
+-- O tipo de documento é validado no banco, não apenas pela interface.
+create or replace function public.validar_documento_por_papel()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public
+as $
+begin
+  if new.usuario_id <> (select auth.uid()) then
+    if not (select private.has_role('admin'::app_role)) then
+      raise exception 'Não é permitido cadastrar documento para outro usuário.';
+    end if;
+  end if;
+
+  if (select private.has_role('validador'::app_role)) and new.tipo_documento <> 'cpf' then
+    raise exception 'O cadastro de Validador exige CPF.';
+  end if;
+
+  if not (select private.has_role('validador'::app_role))
+     and not (select private.has_role('anunciante'::app_role))
+     and not (select private.has_role('admin'::app_role)) then
+    raise exception 'Perfil sem permissão para cadastrar documento.';
+  end if;
+
+  return new;
+end;
+$;
+
+drop trigger if exists validar_documento_por_papel_trigger on public.documentos_usuarios;
+create trigger validar_documento_por_papel_trigger
+before insert or update on public.documentos_usuarios
+for each row execute function public.validar_documento_por_papel();
 
 create table if not exists public.cadastro_validadores (
   usuario_id uuid primary key references auth.users(id) on delete cascade,
@@ -117,6 +150,10 @@ for select to authenticated
 using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
 create policy "aceites_contrato_insert_owner" on public.aceites_contrato
 for insert to authenticated
+with check (usuario_id = (select auth.uid()));
+create policy "aceites_contrato_update_owner" on public.aceites_contrato
+for update to authenticated
+using (usuario_id = (select auth.uid()))
 with check (usuario_id = (select auth.uid()));
 
 create policy "documentos_usuarios_select_owner_admin" on public.documentos_usuarios
