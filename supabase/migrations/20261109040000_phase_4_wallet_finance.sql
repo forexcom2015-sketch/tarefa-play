@@ -29,6 +29,9 @@ create index if not exists lancamentos_carteira_data_idx
   on public.lancamentos (carteira_id, criado_em desc);
 create index if not exists lancamentos_disponibilidade_idx
   on public.lancamentos (carteira_id, disponivel_em);
+create unique index if not exists lancamentos_pagamento_tarefa_referencia_unique
+  on public.lancamentos (carteira_id, tipo, referencia_tipo, referencia_id)
+  where tipo in ('pagamento_tarefa','comissao') and referencia_id is not null;
 
 create table if not exists public.saques (
   id uuid primary key default gen_random_uuid(),
@@ -110,8 +113,12 @@ using ((select private.has_role('admin'::app_role)))
 with check ((select private.has_role('admin'::app_role)));
 
 drop policy if exists niveis_read_active on public.niveis;
-create policy niveis_read_active on public.niveis
-for select to anon, authenticated using (ativo or (select private.has_role('admin'::app_role)));
+drop policy if exists niveis_anon_read_active on public.niveis;
+drop policy if exists niveis_authenticated_read_active on public.niveis;
+create policy niveis_anon_read_active on public.niveis
+for select to anon using (ativo);
+create policy niveis_authenticated_read_active on public.niveis
+for select to authenticated using (ativo or (select private.has_role('admin'::app_role)));
 
 drop policy if exists niveis_admin_manage on public.niveis;
 create policy niveis_admin_manage on public.niveis
@@ -174,7 +181,14 @@ from public.carteiras c
 left join public.lancamentos l
   on l.carteira_id = c.id
   and l.disponivel_em <= now()
-  and (l.status in ('confirmado','solicitado','simulado'))
+  and l.status in ('confirmado','solicitado','simulado')
+  and not (
+    l.tipo in ('pagamento_tarefa','comissao')
+    and exists (
+      select 1 from public.user_roles ur
+      where ur.user_id = c.usuario_id and ur.role = 'anunciante'
+    )
+  )
 group by c.id, c.usuario_id;
 
 create or replace view public.saldo_pendente
@@ -264,7 +278,8 @@ begin
   from public.lancamentos
   where carteira_id = v_carteira.id
     and disponivel_em <= now()
-    and status in ('confirmado','solicitado','simulado');
+    and status in ('confirmado','solicitado','simulado')
+    and tipo not in ('pagamento_tarefa','comissao');
 
   if v_saldo < round(p_valor, 2) then
     raise exception 'Saldo disponivel insuficiente para reservar este pacote.';
@@ -297,7 +312,7 @@ begin
   if auth.uid() is null or not (select private.has_role('admin'::app_role)) then
     raise exception 'Somente o Admin pode confirmar pagamentos internos nesta fase.';
   end if;
-  if p_valor_validador is null or p_valor_validador <= 0 or p_anunciante_id = p_validador_id then
+  if p_valor_validador is null or p_valor_validador <= 0 or p_anunciante_id = p_validador_id or p_referencia_id is null then
     raise exception 'Parametros de pagamento invalidos.';
   end if;
   if not exists (select 1 from public.user_roles where user_id = p_anunciante_id and role = 'anunciante')
@@ -332,7 +347,10 @@ begin
   select coalesce(valor::integer, 24) into v_pendente_horas from public.configuracoes where chave = 'pendente_horas_novos';
   select not exists (
     select 1 from public.lancamentos
-    where carteira_id = v_carteira_validador.id and tipo = 'pagamento_tarefa' and valor > 0
+    where carteira_id = v_carteira_validador.id
+      and tipo = 'pagamento_tarefa'
+      and valor > 0
+      and disponivel_em <= now()
   ) into v_primeiro_pagamento;
   v_disponivel_em := case when v_primeiro_pagamento then now() + make_interval(hours => greatest(v_pendente_horas, 0)) else now() end;
 
