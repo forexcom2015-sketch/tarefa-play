@@ -76,7 +76,7 @@ export function LayoutMenuAnunciante({ titulo, itens }: { titulo: string; itens:
           <Outlet />
         </main>
       </div>
-      <nav aria-label="Navegação do Anunciante" className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-border bg-card py-2 md:hidden">
+      <nav aria-label="Navegação do Anunciante" className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-7 border-t border-border bg-card py-2 md:hidden">
         {itens.map((i) => (
           <Link key={i.to} to={i.to} activeOptions={{ exact: true }}
             className="px-1 py-2 text-center text-[11px] font-medium text-muted-foreground"
