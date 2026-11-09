@@ -189,8 +189,16 @@ function CompletarCadastro() {
           <h2 className="font-semibold text-foreground">1. Dados pessoais</h2>
           <div className="space-y-1"><Label htmlFor="nome">Nome completo / razão social</Label><Input id="nome" required value={nome} onChange={(e) => setNome(e.target.value)} /></div>
           <div className="space-y-1"><Label htmlFor="telefone">Telefone</Label><Input id="telefone" required value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="(00) 00000-0000" /></div>
-          <div className="space-y-1"><Label htmlFor="cpf">CPF</Label><Input id="cpf" required value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder="000.000.000-00" /></div>
-          {documento && <p className={cpfValido ? "text-xs text-green-700" : "text-xs text-destructive"}>{cpfValido ? "CPF válido" : "Confira o CPF informado"}</p>}
+          {papel === "anunciante" && (
+            <div className="space-y-1">
+              <Label htmlFor="tipo-documento">Tipo de documento</Label>
+              <select id="tipo-documento" value={tipoDocumento} onChange={(e) => { setTipoDocumento(e.target.value as "cpf" | "cnpj"); setDocumento(""); }} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="cpf">CPF</option><option value="cnpj">CNPJ</option>
+              </select>
+            </div>
+          )}
+          <div className="space-y-1"><Label htmlFor="cpf">{tipoDocumento.toUpperCase()}</Label><Input id="cpf" required value={documento} onChange={(e) => setDocumento(e.target.value)} placeholder={tipoDocumento === "cpf" ? "000.000.000-00" : "00.000.000/0000-00"} inputMode="numeric" /></div>
+          {documento && <p className={documentoValido ? "text-xs text-green-700" : "text-xs text-destructive"}>{documentoValido ? `${tipoDocumento.toUpperCase()} válido` : `Confira o ${tipoDocumento.toUpperCase()} informado`}</p>}
           <label className="flex items-start gap-2 text-sm text-foreground"><input type="checkbox" checked={maiorDe18} onChange={(e) => setMaiorDe18(e.target.checked)} className="mt-1" /> Confirmo que tenho 18 anos ou mais.</label>
         </section>
 
