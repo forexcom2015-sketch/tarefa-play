@@ -92,7 +92,7 @@ language sql
 stable
 security definer
 set search_path = public, auth, pg_temp
-as $
+as $$
   select exists (
     select 1
     from public.habilitacoes h
@@ -101,7 +101,7 @@ as $
     where h.id = p_habilitacao_id
       and p.anunciante_id = (select auth.uid())
   );
-$;
+$$;
 revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon;
 grant execute on function private.anunciante_do_chamado_token(uuid) to authenticated;
 
@@ -269,7 +269,7 @@ returns table (
 language plpgsql
 security definer
 set search_path = public, auth, pg_temp
-as $
+as $$
 begin
   if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
     raise exception 'Acesso restrito ao Anunciante.';
@@ -285,7 +285,7 @@ begin
     and c.status in ('aguardando_anunciante','em_suporte')
   order by c.criado_em;
 end;
-$;
+$$;
 revoke all on function public.listar_chamados_token_anunciante() from public, anon;
 grant execute on function public.listar_chamados_token_anunciante() to authenticated;
 
