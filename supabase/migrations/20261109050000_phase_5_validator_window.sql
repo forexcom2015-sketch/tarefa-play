@@ -99,6 +99,11 @@ using (
   or (
     status = 'ativa'
     and (select private.has_role('validador'::app_role))
+    and exists (
+      select 1 from public.tipos_tarefa tt
+      join public.canais ch on ch.id = tt.canal_id
+      where tt.id = tarefas.tipo_tarefa_id and tt.ativo = true and ch.ativo = true
+    )
     and exists (select 1 from public.aceites_contrato ac where ac.usuario_id = (select auth.uid()))
     and exists (
       select 1 from public.cadastro_validadores cv
@@ -300,6 +305,14 @@ begin
 
   if v_tarefa.id is null then
     raise exception 'Tarefa indisponivel.';
+  end if;
+
+  if not exists (
+    select 1 from public.tipos_tarefa tt
+    join public.canais ch on ch.id = tt.canal_id
+    where tt.id = v_tarefa.tipo_tarefa_id and tt.ativo = true and ch.ativo = true
+  ) then
+    raise exception 'Este tipo de tarefa ou canal foi desativado.';
   end if;
 
   if not exists (
