@@ -357,8 +357,13 @@ begin
   insert into public.lancamentos (carteira_id, tipo, valor, status, disponivel_em, referencia_tipo, referencia_id)
   values
     (v_carteira_anunciante.id, 'pagamento_tarefa', -round(p_valor_validador, 2), 'confirmado', now(), 'tarefa', p_referencia_id),
-    (v_carteira_anunciante.id, 'comissao', -v_comissao, 'confirmado', now(), 'tarefa', p_referencia_id),
     (v_carteira_validador.id, 'pagamento_tarefa', round(p_valor_validador, 2), 'confirmado', v_disponivel_em, 'tarefa', p_referencia_id);
+
+  if v_comissao > 0 then
+    insert into public.lancamentos (carteira_id, tipo, valor, status, disponivel_em, referencia_tipo, referencia_id)
+    values (v_carteira_anunciante.id, 'comissao', -v_comissao, 'confirmado', now(), 'tarefa', p_referencia_id);
+  end if;
+
   return v_bruto;
 end;
 $$;
