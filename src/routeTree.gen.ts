@@ -81,7 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRouteWithChildren
-  '/cadastro': typeof CadastroRoute
+  '/cadastro': typeof CadastroRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
   '/cadastro/completar': typeof CadastroCompletarRoute
@@ -92,7 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/cadastro': typeof CadastroRoute
+  '/cadastro': typeof CadastroRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/admin': typeof AdminIndexRoute
   '/anunciante': typeof AnuncianteIndexRoute
@@ -105,7 +105,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/anunciante': typeof AnuncianteRouteWithChildren
-  '/cadastro': typeof CadastroRoute
+  '/cadastro': typeof CadastroRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
   '/admin/': typeof AdminIndexRoute
