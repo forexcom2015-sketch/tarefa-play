@@ -42,7 +42,7 @@ function Entrar() {
     const { data: auth } = await supabase.auth.getUser();
     const db = supabase as any;
     if (papel === "validador" && auth.user) {
-      const [contrato, perfil, interesses, pix, social] = await Promise.all([
+      const [contrato, perfil, interesses, pix, social, documento] = await Promise.all([
         db.from("aceites_contrato").select("id").eq("usuario_id", auth.user.id).limit(1),
         db.from("cadastro_validadores").select("usuario_id,maior_de_18,consentimento_lgpd_interesses").eq("usuario_id", auth.user.id).maybeSingle(),
         db.from("interesses_validador").select("categoria_id").eq("usuario_id", auth.user.id),

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type Aba = "configuracoes" | "categorias" | "auditoria" | "suporte";
+type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
 type Categoria = { id: string; nome: string; ativa: boolean };
 type RegistroAuditoria = {
@@ -13,11 +13,20 @@ type RegistroAuditoria = {
   dados: unknown;
   criado_em: string;
 };
+type SaquePendente = {
+  id: string;
+  carteira_id: string;
+  valor: number | string;
+  status: "solicitado" | "pago" | "rejeitado";
+  solicitado_em: string;
+};
+type Nivel = { id: string; nome: string; tarefas_validas_minimas: number; ordem: number };
 
 const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
   { id: "categorias", titulo: "Categorias" },
   { id: "auditoria", titulo: "Auditoria" },
+  { id: "financeiro", titulo: "Financeiro" },
   { id: "suporte", titulo: "Suporte" },
 ];
 
@@ -33,6 +42,8 @@ const padroes: Record<string, { rotulo: string; tipo: "numero" | "booleano" }> =
   bloqueio_por_minimo_ativo: { rotulo: "Bloqueio por mínimo ativo", tipo: "booleano" },
   liberacao_ciclica: { rotulo: "Liberação cíclica", tipo: "booleano" },
   valor_avaliacao_interna: { rotulo: "Valor da avaliação interna", tipo: "numero" },
+  financeiro_mock_ativo: { rotulo: "Habilitar depósitos simulados", tipo: "booleano" },
+  bonus_indicacao_percentual: { rotulo: "Bônus de indicação (%)", tipo: "numero" },
 };
 
 export const Route = createFileRoute("/admin/")({
@@ -44,6 +55,10 @@ function PainelAdmin() {
   const [configuracoes, setConfiguracoes] = useState<Configuracao[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [auditoria, setAuditoria] = useState<RegistroAuditoria[]>([]);
+  const [saques, setSaques] = useState<SaquePendente[]>([]);
+  const [niveis, setNiveis] = useState<Nivel[]>([]);
+  const [carregandoFinanceiro, setCarregandoFinanceiro] = useState(false);
+  const [erroFinanceiro, setErroFinanceiro] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [salvando, setSalvando] = useState<string | null>(null);
   const [mensagem, setMensagem] = useState("");
@@ -71,6 +86,57 @@ function PainelAdmin() {
   useEffect(() => {
     void carregar();
   }, [carregar]);
+
+  const carregarSaques = useCallback(async () => {
+    setCarregandoFinanceiro(true);
+    setErroFinanceiro("");
+    const [saquesResult, niveisResult] = await Promise.all([
+      (supabase as any).from("saques").select("id,carteira_id,valor,status,solicitado_em").eq("status", "solicitado").order("solicitado_em", { ascending: true }),
+      (supabase as any).from("niveis").select("id,nome,tarefas_validas_minimas,ordem").order("ordem"),
+    ]);
+    if (saquesResult.error || niveisResult.error) {
+      setErroFinanceiro("O módulo financeiro ainda não está disponível. Confirme se a migration da Fase 4 foi aplicada no Supabase.");
+      setSaques([]);
+      setNiveis([]);
+    } else {
+      setSaques((saquesResult.data ?? []) as SaquePendente[]);
+      setNiveis((niveisResult.data ?? []) as Nivel[]);
+    }
+    setCarregandoFinanceiro(false);
+  }, []);
+
+  useEffect(() => {
+    if (aba === "financeiro") void carregarSaques();
+  }, [aba, carregarSaques]);
+
+  async function marcarSaquePago(id: string) {
+    setSalvando(id);
+    setErroFinanceiro("");
+    const { error: pagamentoError } = await (supabase as any).rpc("marcar_saque_pago", { p_saque_id: id });
+    setSalvando(null);
+    if (pagamentoError) {
+      setErroFinanceiro(pagamentoError.message || "Não foi possível atualizar o saque.");
+    } else {
+      await carregarSaques();
+    }
+  }
+
+  async function salvarNivel(nivel: Nivel, form: HTMLFormElement) {
+    const dados = new FormData(form);
+    const tarefas = Number(dados.get("tarefas_validas_minimas"));
+    if (!Number.isInteger(tarefas) || tarefas < 0) {
+      setErroFinanceiro("Informe uma quantidade mínima de tarefas válidas igual ou maior que zero.");
+      return;
+    }
+    setSalvando(nivel.id);
+    setErroFinanceiro("");
+    const { error: nivelError } = await (supabase as any).from("niveis").update({
+      tarefas_validas_minimas: tarefas,
+    }).eq("id", nivel.id);
+    setSalvando(null);
+    if (nivelError) setErroFinanceiro(nivelError.message || "Não foi possível salvar o nível.");
+    else await carregarSaques();
+  }
 
   async function salvarConfiguracao(item: Configuracao, valor: string) {
     setSalvando(item.chave);
@@ -157,7 +223,7 @@ function PainelAdmin() {
                     </div>
                   ) : (
                     <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); const form = event.currentTarget; const campo = form.elements.namedItem("valor"); if (campo instanceof HTMLInputElement && campo.value.trim() !== "") void salvarConfiguracao(item, campo.value.trim()); }}>
-                      <input id={`config-${item.chave}`} name="valor" type="number" step={item.chave === "valor_avaliacao_interna" ? "0.01" : "1"} min="0" defaultValue={item.valor}
+                      <input id={`config-${item.chave}`} name="valor" type="number" step={["valor_avaliacao_interna", "bonus_indicacao_percentual", "comissao_percentual"].includes(item.chave) ? "0.01" : "1"} min={item.chave === "saque_minimo" ? "1" : "0"} max={item.chave === "comissao_percentual" ? "99.99" : item.chave === "bonus_indicacao_percentual" ? "100" : undefined} defaultValue={item.valor}
                         className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground" />
                       <button type="submit" disabled={salvando === item.chave} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                         {salvando === item.chave ? "Salvando..." : "Salvar"}
@@ -215,6 +281,54 @@ function PainelAdmin() {
               </article>
             ))}
             {!carregando && auditoria.length === 0 && <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Nenhum evento de auditoria registrado até o momento.</p>}
+          </div>
+        </section>
+      )}
+
+      {aba === "financeiro" && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Saques solicitados</h2>
+              <p className="text-sm text-muted-foreground">A baixa é simulada e exclusiva do Admin. Nenhuma transferência Pix é realizada.</p>
+            </div>
+            <button type="button" onClick={() => void carregarSaques()} disabled={carregandoFinanceiro} className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50">
+              {carregandoFinanceiro ? "Atualizando..." : "Atualizar"}
+            </button>
+          </div>
+          {erroFinanceiro && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erroFinanceiro}</p>}
+          {carregandoFinanceiro ? <p role="status" className="text-sm text-muted-foreground">Carregando solicitações...</p> : saques.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Nenhum saque aguardando revisão.</p>
+          ) : saques.map((saque) => (
+            <article key={saque.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+              <div>
+                <p className="font-semibold text-foreground">{Number(saque.valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+                <p className="text-xs text-muted-foreground">Solicitado em {new Date(saque.solicitado_em).toLocaleString("pt-BR")}</p>
+                <p className="break-all text-xs text-muted-foreground">Carteira: {saque.carteira_id}</p>
+              </div>
+              <button type="button" disabled={salvando === saque.id} onClick={() => void marcarSaquePago(saque.id)} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+                {salvando === saque.id ? "Registrando..." : "Marcar como pago (mock)"}
+              </button>
+            </article>
+          ))}
+
+          <div className="mt-8 space-y-3">
+            <div>
+              <h3 className="font-semibold text-foreground">Critérios de níveis</h3>
+              <p className="text-sm text-muted-foreground">Ajuste a quantidade mínima de tarefas válidas para cada nível. O bônus de indicação é configurado separadamente.</p>
+            </div>
+            {niveis.map((nivel) => (
+              <form key={nivel.id} onSubmit={(event) => { event.preventDefault(); void salvarNivel(nivel, event.currentTarget); }} className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{nivel.nome}</p>
+                  <p className="text-xs text-muted-foreground">Ordem {nivel.ordem}</p>
+                </div>
+                <label className="space-y-1 text-xs text-muted-foreground">Tarefas válidas mínimas
+                  <input name="tarefas_validas_minimas" type="number" min="0" step="1" defaultValue={nivel.tarefas_validas_minimas} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground" />
+                </label>
+                <button type="submit" disabled={salvando === nivel.id} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{salvando === nivel.id ? "Salvando..." : "Salvar"}</button>
+              </form>
+            ))}
           </div>
         </section>
       )}
