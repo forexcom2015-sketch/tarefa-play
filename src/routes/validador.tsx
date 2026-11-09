@@ -10,11 +10,13 @@ export const Route = createFileRoute("/validador")({
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) throw redirect({ to: "/entrar" });
     const db = supabase as any;
-    const [pix, social] = await Promise.all([
+    const [contrato, interesses, pix, social] = await Promise.all([
+      db.from("aceites_contrato").select("id").eq("usuario_id", auth.user.id).limit(1),
+      db.from("interesses_validador").select("categoria_id").eq("usuario_id", auth.user.id),
       db.from("contas_pix").select("aprovado").eq("usuario_id", auth.user.id).maybeSingle(),
       db.from("contas_sociais").select("status").eq("usuario_id", auth.user.id).eq("canal", "instagram").maybeSingle(),
     ]);
-    if (pix.data?.aprovado !== true || social.data?.status !== "aprovada") {
+    if (!contrato.data?.length || (interesses.data?.length ?? 0) < 3 || pix.data?.aprovado !== true || social.data?.status !== "aprovada") {
       throw redirect({ to: "/cadastro/completar" });
     }
   },
