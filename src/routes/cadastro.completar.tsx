@@ -173,6 +173,7 @@ function CompletarCadastro() {
         if (indicacaoError) throw new Error(`Cadastro salvo, mas o código de indicação não foi aceito: ${indicacaoError.message}`);
       }
     } catch (err) {
+      setSucesso("");
       setErro(err instanceof Error ? err.message : "Não foi possível salvar seu cadastro.");
     } finally {
       setSalvando(false);
