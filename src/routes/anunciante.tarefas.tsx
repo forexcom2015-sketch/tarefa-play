@@ -57,7 +57,7 @@ function TarefasReais() {
       db.from("publicacoes").select("id,legenda,status").eq("status", "aprovada").eq("revisao_admin_pendente", false).order("atualizado_em", { ascending: false }),
       db.from("tipos_tarefa").select("id,nome,valor_validador,canais!inner(slug)").eq("ativo", true).eq("metodo_verificacao", "token_lista").eq("canais.slug", "instagram"),
       db.from("tarefas").select("id,publicacao_id,vagas,vagas_ocupadas,vagas_concluidas,link_destino,status,valor_reservado,publicacoes(legenda),tipos_tarefa(nome,valor_validador)").eq("is_demo", false).order("criado_em", { ascending: false }),
-      db.from("chamados_token").select("id,motivo,link_comentario,evidencia,status,prazo,resposta_anunciante,habilitacoes(handle,tarefas(publicacao_id))").in("status", ["aguardando_anunciante", "em_suporte"]).order("criado_em", { ascending: true }),
+      db.rpc("listar_chamados_token_anunciante"),
     ]);
     const falha = pubs.error ?? tiposResult.error ?? tasks.error ?? tickets.error;
     if (falha) {
@@ -69,7 +69,7 @@ function TarefasReais() {
     setPublicacoes((pubs.data ?? []) as Publicacao[]);
     setTipos((tiposResult.data ?? []) as TipoTarefa[]);
     setTarefas(taskRows);
-    setChamados((tickets.data ?? []) as Chamado[]);
+    setChamados((tickets.data ?? []).map((item: any) => ({ ...item, id: item.chamado_id })) as Chamado[]);
     const lists = await Promise.all(taskRows.map(async (task) => {
       const { data, error } = await db.rpc("listar_habilitacoes_tarefa", { p_tarefa_id: task.id });
       return error ? [task.id, [] as Habilitacao[]] as const : [task.id, (data ?? []) as Habilitacao[]] as const;
@@ -199,7 +199,7 @@ function TarefasReais() {
               <p>Vagas: <strong>{task.vagas}</strong></p><p>Habilitados: <strong>{lista.length}</strong></p><p>Concluídas: <strong>{task.vagas_concluidas}</strong></p><p>Reservado: <strong>{moeda(task.valor_reservado)}</strong></p>
             </div>
             <div className="flex flex-wrap gap-2"><Button size="sm" disabled={processando !== null || !lista.some((h) => ["habilitado","em_andamento"].includes(h.status))} onClick={() => void gerarTokens(task.id)}>{processando === task.id ? "Gerando..." : "Gerar / renovar tokens"}</Button>{codigos.length > 0 && <><Button size="sm" variant="outline" onClick={() => void baixarCsv(task.id)}>Exportar CSV</Button><Button size="sm" variant="outline" onClick={() => void copiarLista(task.id)}>Copiar lista</Button></>}</div>
-            {codigos.length > 0 && <div className="space-y-2 rounded-md bg-muted p-3"><p className="text-xs font-semibold text-foreground">Códigos exibidos somente nesta sessão · importe e envie cada um ao @ correspondente</p>{codigos.map((row) => <div key={row.habilitacao_id} className="flex flex-wrap justify-between gap-2 border-b border-border pb-2 text-xs last:border-0"><span>{row.handle}</span><code className="font-mono font-bold">{row.codigo}</code><span className="text-muted-foreground">Expira {dataHora(row.expira_em)}</span></div>)}</div>}
+            {codigos.length > 0 && <p className="rounded-md bg-muted p-3 text-xs text-foreground">{codigos.length} códigos gerados. O texto puro aparece apenas nos botões de copiar ou exportar e não será recuperado depois desta sessão.</p>}
             <div className="space-y-1"><p className="text-xs font-semibold text-muted-foreground">Lista de @ habilitados</p>{lista.length === 0 ? <p className="text-xs text-muted-foreground">Nenhum Validador se habilitou ainda.</p> : lista.map((h) => <p key={h.habilitacao_id} className="flex flex-wrap justify-between gap-2 text-xs"><span>{h.handle} · {h.status}</span><span className="text-muted-foreground">{h.token_status ? `Token: ${h.token_status}` : "Token ainda não gerado"}</span></p>)}</div>
           </article>;
         })}
@@ -208,7 +208,7 @@ function TarefasReais() {
       <div className="space-y-3">
         <h3 className="font-semibold text-foreground">Chamados de código não recebido</h3>
         {chamados.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Nenhum chamado aguardando resposta.</p> : chamados.map((ticket) => <article key={ticket.id} className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm">
-          <div className="flex flex-wrap justify-between gap-2"><strong>{ticket.habilitacoes?.handle ?? "Validador"}</strong><span className="text-xs text-muted-foreground">{ticket.status} · prazo {dataHora(ticket.prazo)}</span></div>
+          <div className="flex flex-wrap justify-between gap-2"><strong>{ticket.handle ?? "Validador"}</strong><span className="text-xs text-muted-foreground">{ticket.status} · prazo {dataHora(ticket.prazo)}</span></div>
           <p>{ticket.motivo}</p><a href={ticket.link_comentario} target="_blank" rel="noreferrer" className="text-primary underline">Ver comentário informado</a>
           {ticket.evidencia && <p className="break-all text-xs text-muted-foreground">Evidência: {ticket.evidencia}</p>}
           {ticket.status === "aguardando_anunciante" && <><textarea rows={2} value={respostas[ticket.id] ?? ""} onChange={(e) => setRespostas((atual) => ({ ...atual, [ticket.id]: e.target.value }))} placeholder="Informe que enviou o código ou explique a situação..." className="w-full rounded-md border border-input bg-background p-2" /><Button size="sm" disabled={processando === ticket.id} onClick={() => void responderChamado(ticket.id)}>{processando === ticket.id ? "Enviando..." : "Responder chamado"}</Button></>}
