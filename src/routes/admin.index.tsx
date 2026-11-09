@@ -223,7 +223,7 @@ function PainelAdmin() {
                     </div>
                   ) : (
                     <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); const form = event.currentTarget; const campo = form.elements.namedItem("valor"); if (campo instanceof HTMLInputElement && campo.value.trim() !== "") void salvarConfiguracao(item, campo.value.trim()); }}>
-                      <input id={`config-${item.chave}`} name="valor" type="number" step={item.chave === "valor_avaliacao_interna" ? "0.01" : "1"} min="0" defaultValue={item.valor}
+                      <input id={`config-${item.chave}`} name="valor" type="number" step={["valor_avaliacao_interna", "bonus_indicacao_percentual", "comissao_percentual"].includes(item.chave) ? "0.01" : "1"} min="0" max={item.chave === "comissao_percentual" ? "99.99" : item.chave === "bonus_indicacao_percentual" ? "100" : undefined} defaultValue={item.valor}
                         className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground" />
                       <button type="submit" disabled={salvando === item.chave} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                         {salvando === item.chave ? "Salvando..." : "Salvar"}
