@@ -216,8 +216,9 @@ export interface FileRouteTypes {
     | '/validador/minhas-tarefas'
     | '/validador/ganhos'
     | '/validador/perfil'
+    | '/validador/executar/$habilitacaoId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/anunciante/publicacoes' | '/anunciante/validacoes' | '/anunciante/carteira' | '/anunciante/configuracoes' | '/validador' | '/cadastro/completar' | '/admin/cadastros' | '/admin/tipos-tarefa' | '/validador/minhas-tarefas' | '/validador/ganhos' | '/validador/perfil'
+  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/anunciante/publicacoes' | '/anunciante/validacoes' | '/anunciante/carteira' | '/anunciante/configuracoes' | '/validador' | '/cadastro/completar' | '/admin/cadastros' | '/admin/tipos-tarefa' | '/validador/minhas-tarefas' | '/validador/ganhos' | '/validador/perfil' | '/validador/executar/$habilitacaoId'
   id:
     | '__root__'
     | '/'
@@ -239,6 +240,7 @@ export interface FileRouteTypes {
     | '/validador/minhas-tarefas'
     | '/validador/ganhos'
     | '/validador/perfil'
+    | '/validador/executar/$habilitacaoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
