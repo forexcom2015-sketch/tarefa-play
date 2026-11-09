@@ -321,6 +321,12 @@ begin
   if v_publicacao.status <> 'aprovada' then
     raise exception 'A publicacao precisa continuar aprovada.';
   end if;
+  if not exists (
+    select 1 from public.tipos_tarefa tt
+    where tt.id = v_tarefa.tipo_tarefa_id and tt.metodo_verificacao = 'token_lista'
+  ) then
+    raise exception 'Esta tarefa nao utiliza tokens de verificacao.';
+  end if;
 
   for v_habilitacao in
     select h.*
@@ -645,6 +651,15 @@ begin
   for update;
   if v_habilitacao.id is null then
     raise exception 'Habilitacao ativa nao encontrada.';
+  end if;
+  if not exists (
+    select 1 from public.habilitacoes h
+    join public.tarefas t on t.id = h.tarefa_id
+    join public.tipos_tarefa tt on tt.id = t.tipo_tarefa_id
+    where h.id = p_habilitacao_id and t.is_demo = false
+      and tt.metodo_verificacao = 'token_lista'
+  ) then
+    raise exception 'Chamados de codigo so estao disponiveis para tarefas reais com token.';
   end if;
   if exists (
     select 1 from public.chamados_token
