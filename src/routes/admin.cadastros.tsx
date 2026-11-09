@@ -5,6 +5,7 @@ import { exigirPapel } from "@/lib/papel";
 import { Button } from "@/components/ui/button";
 
 type Pix = { usuario_id: string; titular_nome: string; titular_cpf: string; tipo_chave: string; chave: string; aprovado: boolean };
+type Telefone = { usuario_id: string; telefone: string; telefone_verificado: boolean };
 type Social = { id: string; usuario_id: string; handle: string; data_primeira_postagem: string; imagem_url: string | null; status: "pendente" | "aprovada" | "rejeitada"; signedUrl?: string | null };
 
 export const Route = createFileRoute("/admin/cadastros")({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/admin/cadastros")({
 
 function RevisaoCadastros() {
   const [pix, setPix] = useState<Pix[]>([]);
+  const [telefones, setTelefones] = useState<Telefone[]>([]);
   const [sociais, setSociais] = useState<Social[]>([]);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(true);
@@ -25,16 +27,18 @@ function RevisaoCadastros() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     setErro("");
-    const [pixResult, socialResult] = await Promise.all([
+    const [pixResult, socialResult, telefoneResult] = await Promise.all([
       db.from("contas_pix").select("usuario_id,titular_nome,titular_cpf,tipo_chave,chave,aprovado").order("atualizado_em", { ascending: false }),
       db.from("contas_sociais").select("id,usuario_id,handle,data_primeira_postagem,imagem_url,status").order("criado_em", { ascending: false }),
+      db.from("cadastro_validadores").select("usuario_id,telefone,telefone_verificado").order("atualizado_em", { ascending: false }),
     ]);
-    if (pixResult.error || socialResult.error) {
-      setErro(pixResult.error?.message ?? socialResult.error?.message ?? "Não foi possível carregar as revisões.");
+    if (pixResult.error || socialResult.error || telefoneResult.error) {
+      setErro(pixResult.error?.message ?? socialResult.error?.message ?? telefoneResult.error?.message ?? "Não foi possível carregar as revisões.");
       setCarregando(false);
       return;
     }
     setPix((pixResult.data ?? []) as Pix[]);
+    setTelefones((telefoneResult.data ?? []) as Telefone[]);
     const itens = (socialResult.data ?? []) as Social[];
     const comImagens = await Promise.all(itens.map(async (item) => {
       if (!item.imagem_url) return { ...item, signedUrl: null };
@@ -46,6 +50,14 @@ function RevisaoCadastros() {
   }, [db]);
 
   useEffect(() => { void carregar(); }, [carregar]);
+
+  async function revisarTelefone(usuarioId: string, telefone_verificado: boolean) {
+    setSalvando(usuarioId);
+    const { error } = await db.from("cadastro_validadores").update({ telefone_verificado }).eq("usuario_id", usuarioId);
+    setSalvando("");
+    if (error) setErro(error.message);
+    else await carregar();
+  }
 
   async function revisarPix(usuarioId: string, aprovado: boolean) {
     setSalvando(usuarioId);
@@ -73,6 +85,16 @@ function RevisaoCadastros() {
         {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
         {carregando ? <p className="text-sm text-muted-foreground">Carregando revisões...</p> : (
           <>
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold text-foreground">Telefones dos Validadores</h2>
+              {telefones.length === 0 && <p className="text-sm text-muted-foreground">Nenhum telefone cadastrado.</p>}
+              {telefones.map((item) => (
+                <article key={item.usuario_id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+                  <div><p className="font-medium text-foreground">{item.telefone}</p><p className="text-xs text-muted-foreground">Usuário: {item.usuario_id}</p><p className="text-xs text-muted-foreground">Status: {item.telefone_verificado ? "Verificado" : "Pendente de confirmação simulada"}</p></div>
+                  <Button size="sm" disabled={salvando === item.usuario_id || item.telefone_verificado} onClick={() => void revisarTelefone(item.usuario_id, true)}>Confirmar telefone</Button>
+                </article>
+              ))}
+            </section>
             <section className="space-y-3">
               <h2 className="text-lg font-semibold text-foreground">Contas Pix</h2>
               {pix.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma conta Pix cadastrada.</p>}
