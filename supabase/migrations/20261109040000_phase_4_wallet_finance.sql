@@ -489,7 +489,7 @@ revoke all on function public.registrar_indicacao(text) from public, anon;
 grant execute on function public.obter_ou_criar_carteira() to authenticated;
 grant execute on function public.depositar_mock(numeric) to authenticated;
 grant execute on function public.reservar_pacote(numeric, uuid) to authenticated;
-grant execute on function public.pagar_tarefa(uuid, uuid, numeric, uuid) to authenticated;
+grant execute on function public.pagar_tarefa(uuid, uuid, numeric, uuid) to authenticated, service_role;
 grant execute on function public.solicitar_saque(numeric) to authenticated;
 grant execute on function public.marcar_saque_pago(uuid) to authenticated;
 grant execute on function public.registrar_indicacao(text) to authenticated;
@@ -554,4 +554,4 @@ end;
 $$;
 
 revoke all on function public.creditar_bonus_indicacao(uuid, numeric, uuid) from public, anon;
-grant execute on function public.creditar_bonus_indicacao(uuid, numeric, uuid) to authenticated;
+grant execute on function public.creditar_bonus_indicacao(uuid, numeric, uuid) to authenticated, service_role;
