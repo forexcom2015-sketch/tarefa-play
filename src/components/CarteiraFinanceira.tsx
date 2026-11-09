@@ -38,7 +38,6 @@ function dataHora(valor: string) {
 }
 
 export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
-  const [usuarioId, setUsuarioId] = useState("");
   const [disponivel, setDisponivel] = useState(0);
   const [pendente, setPendente] = useState(0);
   const [reservado, setReservado] = useState(0);
@@ -63,8 +62,6 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
       setCarregando(false);
       return;
     }
-    setUsuarioId(auth.user.id);
-
     const { error: carteiraError } = await db.rpc("obter_ou_criar_carteira");
     if (carteiraError) {
       setErro("A carteira ainda não está disponível. A migração financeira precisa ser aplicada no Supabase antes de habilitar este módulo.");
@@ -102,7 +99,8 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
     const quantidade = tarefasResult.count ?? 0;
     setTarefasValidas(quantidade);
     const niveis = (nivelResult.data ?? []) as { nome: string; tarefas_validas_minimas: number }[];
-    const atual = niveis.filter((item) => quantidade >= item.tarefas_validas_minimas).at(-1);
+    const niveisElegiveis = niveis.filter((item) => quantidade >= item.tarefas_validas_minimas);
+    const atual = niveisElegiveis.length ? niveisElegiveis[niveisElegiveis.length - 1] : undefined;
     setNivel(atual?.nome ?? "Bronze");
     setCarregando(false);
   }, []);
@@ -185,6 +183,13 @@ export function CarteiraFinanceira({ papel }: { papel: PapelFinanceiro }) {
                 <h3 className="font-semibold text-foreground">Progresso e nível</h3>
                 <p className="mt-2 text-2xl font-bold text-primary">{nivel}</p>
                 <p className="text-sm text-muted-foreground">{tarefasValidas} pagamentos de tarefas registrados</p>
+                <div className="mt-4 space-y-1">
+                  <div className="flex justify-between text-xs text-muted-foreground"><span>Progresso até o saque mínimo</span><span>{Math.min(100, Math.round((disponivel / 100) * 100))}%</span></div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.max(0, (disponivel / 100) * 100))}%` }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">{moeda(disponivel)} de R$ 100,00 disponíveis</p>
+                </div>
                 <p className="mt-3 text-xs text-muted-foreground">Os critérios dos níveis são configuráveis pela administração. A contagem acompanha os pagamentos registrados no livro-razão.</p>
               </article>
               <article className="rounded-xl border border-border bg-card p-4">
