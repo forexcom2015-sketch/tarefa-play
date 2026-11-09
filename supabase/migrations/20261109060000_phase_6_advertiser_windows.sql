@@ -213,6 +213,13 @@ begin
     raise exception 'Somente o Anunciante titular pode salvar esta publicacao.';
   end if;
 
+  if tg_op = 'UPDATE'
+    and old.revisao_admin_pendente
+    and old.restricao_id is not null
+    and new.restricao_id is distinct from old.restricao_id then
+    raise exception 'Uma publicacao encaminhada para revisao nao pode remover a restricao antes da analise do Admin.';
+  end if;
+
   if new.restricao_id is null then
     new.revisao_admin_pendente := false;
     return new;
