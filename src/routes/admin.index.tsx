@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte";
+type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte" | "publicacoes";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
 type Categoria = { id: string; nome: string; ativa: boolean };
 type RegistroAuditoria = {
@@ -21,6 +21,7 @@ type SaquePendente = {
   solicitado_em: string;
 };
 type Nivel = { id: string; nome: string; tarefas_validas_minimas: number; ordem: number };
+type PublicacaoRevisao = { id: string; legenda: string; preco: number | string; criado_em: string; imagem_url: string | null; link: string | null; categorias?: { nome: string } | null };
 
 const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
@@ -28,6 +29,7 @@ const abas: { id: Aba; titulo: string }[] = [
   { id: "auditoria", titulo: "Auditoria" },
   { id: "financeiro", titulo: "Financeiro" },
   { id: "suporte", titulo: "Suporte" },
+  { id: "publicacoes", titulo: "Revisão de publicações" },
 ];
 
 const padroes: Record<string, { rotulo: string; tipo: "numero" | "booleano" }> = {
@@ -57,6 +59,7 @@ function PainelAdmin() {
   const [auditoria, setAuditoria] = useState<RegistroAuditoria[]>([]);
   const [saques, setSaques] = useState<SaquePendente[]>([]);
   const [niveis, setNiveis] = useState<Nivel[]>([]);
+  const [publicacoesRevisao, setPublicacoesRevisao] = useState<PublicacaoRevisao[]>([]);
   const [carregandoFinanceiro, setCarregandoFinanceiro] = useState(false);
   const [erroFinanceiro, setErroFinanceiro] = useState("");
   const [carregando, setCarregando] = useState(false);
@@ -120,6 +123,39 @@ function PainelAdmin() {
       await carregarSaques();
     }
   }
+
+  const carregarPublicacoesRevisao = useCallback(async () => {
+    setCarregandoFinanceiro(true);
+    setErroFinanceiro("");
+    const { data, error } = await (supabase as any)
+      .from("publicacoes")
+      .select("id,legenda,preco,criado_em,imagem_url,link,categorias(nome)")
+      .eq("revisao_admin_pendente", true)
+      .order("criado_em", { ascending: true });
+    if (error) {
+      setErroFinanceiro("A fila de revisão depende da migration da Fase 6.");
+      setPublicacoesRevisao([]);
+    } else {
+      setPublicacoesRevisao((data ?? []) as PublicacaoRevisao[]);
+    }
+    setCarregandoFinanceiro(false);
+  }, []);
+
+  async function aprovarPublicacao(id: string) {
+    setSalvando(id);
+    setErroFinanceiro("");
+    const { error } = await (supabase as any).from("publicacoes")
+      .update({ revisao_admin_pendente: false, status: "aprovada", atualizado_em: new Date().toISOString() })
+      .eq("id", id)
+      .eq("revisao_admin_pendente", true);
+    setSalvando(null);
+    if (error) setErroFinanceiro(error.message || "Não foi possível aprovar a publicação.");
+    else await carregarPublicacoesRevisao();
+  }
+
+  useEffect(() => {
+    if (aba === "publicacoes") void carregarPublicacoesRevisao();
+  }, [aba, carregarPublicacoesRevisao]);
 
   async function salvarNivel(nivel: Nivel, form: HTMLFormElement) {
     const dados = new FormData(form);
@@ -330,6 +366,32 @@ function PainelAdmin() {
               </form>
             ))}
           </div>
+        </section>
+      )}
+
+      {aba === "publicacoes" && (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Publicações aguardando revisão</h2>
+            <p className="text-sm text-muted-foreground">Cursos sobre criptomoedas são encaminhados para análise administrativa antes de contratar validações.</p>
+          </div>
+          {erroFinanceiro && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erroFinanceiro}</p>}
+          {carregandoFinanceiro ? <p role="status" className="text-sm text-muted-foreground">Carregando fila...</p> : publicacoesRevisao.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground">Nenhuma publicação aguardando revisão.</p>
+          ) : publicacoesRevisao.map((item) => (
+            <article key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+              <div className="min-w-0">
+                {item.imagem_url && <img src={item.imagem_url} alt="Criativo enviado para revisão" className="mb-3 max-h-40 max-w-full rounded-md object-contain" />}
+                <p className="font-semibold text-foreground">{item.categorias?.nome ?? "Curso"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{item.legenda}</p>
+                {item.link && <a href={item.link} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary underline">Abrir link da oferta</a>}
+                <p className="mt-1 text-xs text-muted-foreground">Preço: {Number(item.preco).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} · Recebida em {new Date(item.criado_em).toLocaleDateString("pt-BR")}</p>
+              </div>
+              <button type="button" disabled={salvando === item.id} onClick={() => void aprovarPublicacao(item.id)} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+                {salvando === item.id ? "Aprovando..." : "Aprovar curso"}
+              </button>
+            </article>
+          ))}
         </section>
       )}
 
