@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -122,7 +122,13 @@ function MinhasTarefas() {
             {ativa && <p className="rounded-md bg-muted p-3 text-sm">Tempo restante: <strong className="tabular-nums">{expirouNoRelogio ? "Atualizando expiração..." : restante(item.expira_em)}</strong></p>}
             {item.tarefas?.is_demo && <p className="text-xs text-muted-foreground">Tarefa demonstrativa. A execução será liberada em uma fase posterior.</p>}
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" disabled>Executar — Em breve</Button>
+              {item.tarefas?.is_demo ? (
+                <Button type="button" variant="outline" disabled>Executar — Em breve</Button>
+              ) : item.status === "habilitado" || item.status === "em_andamento" ? (
+                <Link to="/validador/executar/$habilitacaoId" params={{ habilitacaoId: item.id }}>
+                  <Button type="button">Avaliar publicação</Button>
+                </Link>
+              ) : null}
               {ativa && <Button type="button" variant="destructive" disabled={processando !== null || expirouNoRelogio} onClick={() => void desistir(item.id)}>{processando === item.id ? "Registrando..." : "Desistir"}</Button>}
             </div>
           </article>
