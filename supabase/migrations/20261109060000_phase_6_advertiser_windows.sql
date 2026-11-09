@@ -191,6 +191,67 @@ using (
   and (select private.has_role('anunciante'::app_role))
 );
 
+-- A regra de restricoes tambem e aplicada no banco: a interface nao e a fronteira de seguranca.
+create or replace function private.validar_restricao_publicacao()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $
+declare
+  v_nome text;
+  v_ativa boolean;
+  v_exige_revisao boolean;
+begin
+  if (select private.has_role('admin'::app_role)) then
+    return new;
+  end if;
+
+  if auth.uid() is null
+    or new.anunciante_id <> auth.uid()
+    or not (select private.has_role('anunciante'::app_role)) then
+    raise exception 'Somente o Anunciante titular pode salvar esta publicacao.';
+  end if;
+
+  if new.restricao_id is null then
+    new.revisao_admin_pendente := false;
+    return new;
+  end if;
+
+  select nome, ativa, exige_revisao
+    into v_nome, v_ativa, v_exige_revisao
+  from public.restricoes
+  where id = new.restricao_id;
+
+  if v_nome is null or not v_ativa then
+    raise exception 'A restricao selecionada nao esta disponivel.';
+  end if;
+
+  if v_nome ~* 'cassino|multin[ií]vel|mmn' then
+    raise exception 'Produtos de cassino e marketing multinivel nao sao permitidos.';
+  end if;
+
+  if v_nome ~* 'criptomoedas' then
+    if not new.produto_eh_curso then
+      raise exception 'Produtos de criptomoedas so podem prosseguir quando forem cursos educacionais.';
+    end if;
+    new.revisao_admin_pendente := true;
+  else
+    new.revisao_admin_pendente := v_exige_revisao;
+  end if;
+
+  return new;
+end;
+$;
+
+revoke all on function private.validar_restricao_publicacao() from public, anon, authenticated;
+
+drop trigger if exists validar_restricao_publicacao on public.publicacoes;
+create trigger validar_restricao_publicacao
+before insert or update of anunciante_id, restricao_id, produto_eh_curso, revisao_admin_pendente
+on public.publicacoes
+for each row execute function private.validar_restricao_publicacao();
+
 create or replace function public.estimar_validadores_disponiveis(p_categoria_id uuid)
 returns integer
 language plpgsql
@@ -213,6 +274,7 @@ begin
   from public.cadastro_validadores cv
   where cv.maior_de_18 = true
     and cv.consentimento_lgpd_interesses = true
+    and exists (select 1 from public.user_roles ur where ur.user_id = cv.usuario_id and ur.role = 'validador')
     and exists (select 1 from public.aceites_contrato ac where ac.usuario_id = cv.usuario_id)
     and exists (select 1 from public.documentos_usuarios du where du.usuario_id = cv.usuario_id and du.tipo_documento = 'cpf')
     and exists (select 1 from public.contas_pix cp where cp.usuario_id = cv.usuario_id and cp.aprovado = true)
