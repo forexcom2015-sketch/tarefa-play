@@ -6,7 +6,11 @@
 create extension if not exists pgcrypto with schema extensions;
 
 alter table public.tarefas
-  add column if not exists tokens_exportados_em timestamptz;
+  add column if not exists tokens_exportados_em timestamptz,
+  add column if not exists vagas_concluidas integer not null default 0
+    check (vagas_concluidas >= 0 and vagas_concluidas <= vagas),
+  add column if not exists valor_reservado numeric(14,2) not null default 0
+    check (valor_reservado >= 0);
 
 create index if not exists tarefas_publicacao_idx
   on public.tarefas (publicacao_id, criado_em desc);
@@ -139,6 +143,9 @@ declare
   v_publicacao public.publicacoes;
   v_tipo public.tipos_tarefa;
   v_tarefa_id uuid;
+  v_comissao_pct numeric(8,4);
+  v_custo_unitario numeric(14,2);
+  v_total_reservado numeric(14,2);
 begin
   if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
     raise exception 'Somente Anunciantes autenticados podem criar tarefas reais.';
@@ -146,8 +153,8 @@ begin
   if p_vagas is null or p_vagas < 1 or p_vagas > 10000 then
     raise exception 'Informe uma quantidade de vagas entre 1 e 10000.';
   end if;
-  if p_link_publicacao is null or p_link_publicacao !~* '^https?://' then
-    raise exception 'Informe o link publico da publicacao real.';
+  if p_link_publicacao is null or p_link_publicacao !~* '^https?://(www\\.)?instagram\\.com/' then
+    raise exception 'Informe o link publico da publicacao real no Instagram.';
   end if;
 
   select * into v_publicacao
@@ -178,6 +185,17 @@ begin
     v_publicacao.id, v_tipo.id, v_publicacao.categoria_id, p_vagas,
     trim(p_link_publicacao), 5, 'ativa', false
   ) returning id into v_tarefa_id;
+
+  select coalesce(valor::numeric, 35) into v_comissao_pct
+  from public.configuracoes where chave = 'comissao_percentual';
+  if v_comissao_pct < 0 or v_comissao_pct >= 100 then
+    raise exception 'Percentual de comissao invalido.';
+  end if;
+  v_custo_unitario := round(v_tipo.valor_validador, 2)
+    + round(v_tipo.valor_validador * v_comissao_pct / (100 - v_comissao_pct), 2);
+  v_total_reservado := round(v_custo_unitario * p_vagas, 2);
+  perform public.reservar_pacote(v_total_reservado, v_tarefa_id);
+  update public.tarefas set valor_reservado = v_total_reservado where id = v_tarefa_id;
 
   insert into public.auditoria (usuario_id, acao, entidade, dados)
   values (auth.uid(), 'tarefa_real_criada', 'tarefas',
@@ -448,7 +466,7 @@ grant execute on function public.pagar_tarefa(uuid,uuid,numeric,uuid) to authent
 
 -- Valida codigo de uso unico, pertencente ao Validador autenticado.
 create or replace function public.validar_token_tarefa(p_habilitacao_id uuid, p_codigo text)
-returns numeric
+returns jsonb
 language plpgsql
 security definer
 set search_path = public, auth, extensions, pg_temp
@@ -467,7 +485,7 @@ begin
     raise exception 'Somente Validadores autenticados podem validar tokens.';
   end if;
   if p_codigo is null or length(trim(p_codigo)) < 16 or length(trim(p_codigo)) > 128 then
-    raise exception 'Codigo invalido.';
+    return jsonb_build_object('success', false, 'message', 'Codigo invalido.');
   end if;
 
   select * into v_habilitacao
@@ -475,11 +493,11 @@ begin
   where id = p_habilitacao_id and validador_id = v_user_id
   for update;
   if v_habilitacao.id is null or v_habilitacao.status not in ('habilitado','em_andamento') then
-    raise exception 'Esta habilitacao nao esta mais disponivel.';
+    return jsonb_build_object('success', false, 'message', 'Esta habilitacao nao esta mais disponivel.');
   end if;
   if v_habilitacao.expira_em <= now() then
     perform private.expirar_habilitacoes_validador();
-    raise exception 'O prazo da habilitacao expirou.';
+    return jsonb_build_object('success', false, 'message', 'O prazo da habilitacao expirou.');
   end if;
 
   select * into v_token
@@ -487,17 +505,17 @@ begin
   where habilitacao_id = p_habilitacao_id and status = 'ativo'
   for update;
   if v_token.id is null then
-    raise exception 'Nao ha token ativo para esta habilitacao. Solicite um novo codigo ao Anunciante.';
+    return jsonb_build_object('success', false, 'message', 'Nao ha token ativo. Solicite um novo codigo ao Anunciante.');
   end if;
   if v_token.expira_em <= now() then
     update public.tokens_tarefa
     set status = 'expirado', atualizado_em = now()
     where id = v_token.id;
-    raise exception 'Este codigo expirou. Solicite um novo token ao Anunciante.';
+    return jsonb_build_object('success', false, 'message', 'Este codigo expirou. Solicite um novo token ao Anunciante.');
   end if;
   if v_token.tentativas >= v_token.limite_tentativas then
     update public.tokens_tarefa set status = 'bloqueado', atualizado_em = now() where id = v_token.id;
-    raise exception 'Limite de tentativas atingido. Solicite um novo token ao Anunciante.';
+    return jsonb_build_object('success', false, 'message', 'Limite de tentativas atingido. Solicite um novo token ao Anunciante.');
   end if;
 
   v_hash := encode(digest(upper(trim(p_codigo)), 'sha256'), 'hex');
@@ -510,14 +528,17 @@ begin
     insert into public.auditoria (usuario_id, acao, entidade, dados)
     values (v_user_id, 'token_tarefa_tentativa_invalida', 'tokens_tarefa',
       jsonb_build_object('habilitacao_id', p_habilitacao_id, 'tentativas', v_token.tentativas + 1));
-    raise exception 'Codigo incorreto. Confira o codigo enviado pelo Anunciante.';
+    return jsonb_build_object('success', false,
+      'message', case when v_token.tentativas + 1 >= v_token.limite_tentativas
+        then 'Limite de tentativas atingido. Solicite um novo token ao Anunciante.'
+        else 'Codigo incorreto. Confira o codigo enviado pelo Anunciante.' end);
   end if;
 
   select * into v_tarefa from public.tarefas where id = v_habilitacao.tarefa_id for update;
   select * into v_publicacao from public.publicacoes where id = v_tarefa.publicacao_id;
   select * into v_tipo from public.tipos_tarefa where id = v_tarefa.tipo_tarefa_id;
   if v_publicacao.id is null or v_tipo.metodo_verificacao <> 'token_lista' then
-    raise exception 'Esta tarefa nao utiliza verificacao por token.';
+    return jsonb_build_object('success', false, 'message', 'Esta tarefa nao utiliza verificacao por token.');
   end if;
 
   update public.tokens_tarefa
@@ -529,7 +550,10 @@ begin
   where id = p_habilitacao_id;
 
   update public.tarefas
-  set vagas_ocupadas = greatest(vagas_ocupadas - 1, 0), atualizado_em = now()
+  set vagas_ocupadas = greatest(vagas_ocupadas - 1, 0),
+      vagas_concluidas = least(vagas, vagas_concluidas + 1),
+      status = case when vagas_concluidas + 1 >= vagas then 'encerrada' else status end,
+      atualizado_em = now()
   where id = v_tarefa.id;
 
   v_pagamento := public.pagar_tarefa(
@@ -541,9 +565,13 @@ begin
     jsonb_build_object('tarefa_id', v_tarefa.id, 'habilitacao_id', p_habilitacao_id,
       'token_id', v_token.id, 'pagamento_bruto', v_pagamento));
 
-  return v_pagamento;
+  return jsonb_build_object('success', true, 'valor_pago', v_tipo.valor_validador,
+    'disponivel_em_pendente', true, 'message', 'Codigo validado e pagamento registrado.');
 end;
 $$;
+
+revoke all on function public.validar_token_tarefa(uuid,text) from public, anon;
+grant execute on function public.validar_token_tarefa(uuid,text) to authenticated;
 
 revoke all on function public.validar_token_tarefa(uuid,text) from public, anon;
 grant execute on function public.validar_token_tarefa(uuid,text) to authenticated;
@@ -726,7 +754,10 @@ begin
     set status = 'validada', validada_em = now(), atualizado_em = now()
     where id = v_habilitacao.id;
     update public.tarefas
-    set vagas_ocupadas = greatest(vagas_ocupadas - 1, 0), atualizado_em = now()
+    set vagas_ocupadas = greatest(vagas_ocupadas - 1, 0),
+        vagas_concluidas = least(vagas, vagas_concluidas + 1),
+        status = case when vagas_concluidas + 1 >= vagas then 'encerrada' else status end,
+        atualizado_em = now()
     where id = v_tarefa.id;
     update public.tokens_tarefa
     set status = 'invalidado', atualizado_em = now()
@@ -766,3 +797,59 @@ exception when others then
   raise notice 'Agendamento pg_cron nao criado; a escalacao tambem ocorre sob demanda: %', sqlerrm;
 end;
 $$;
+
+
+-- Impede que o limite contratado seja ultrapassado: vagas ocupadas + concluidas.
+create or replace function public.habilitar_tarefa(p_tarefa_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, auth, pg_temp
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_tarefa public.tarefas;
+  v_handle text;
+  v_habilitacao_id uuid;
+  v_prazo integer;
+begin
+  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+    raise exception 'Somente Validadores autenticados podem se habilitar.';
+  end if;
+  perform private.expirar_habilitacoes_validador();
+  if not exists (select 1 from public.aceites_contrato where usuario_id = v_user_id)
+    or not exists (select 1 from public.cadastro_validadores where usuario_id = v_user_id
+      and maior_de_18 = true and consentimento_lgpd_interesses = true)
+    or not exists (select 1 from public.documentos_usuarios where usuario_id = v_user_id and tipo_documento = 'cpf')
+    or (select count(*) from public.interesses_validador where usuario_id = v_user_id) not between 3 and 8
+    or not exists (select 1 from public.contas_pix where usuario_id = v_user_id and aprovado = true)
+    or not exists (select 1 from public.contas_sociais where usuario_id = v_user_id and canal = 'instagram' and status = 'aprovada') then
+    raise exception 'Seu cadastro ainda nao esta aprovado. Conclua contrato, interesses, Pix e Instagram.';
+  end if;
+  select handle into v_handle from public.contas_sociais
+  where usuario_id = v_user_id and canal = 'instagram' and status = 'aprovada';
+  select * into v_tarefa from public.tarefas where id = p_tarefa_id and status = 'ativa' for update;
+  if v_tarefa.id is null then raise exception 'Tarefa indisponivel.'; end if;
+  if not exists (select 1 from public.tipos_tarefa tt join public.canais ch on ch.id = tt.canal_id
+    where tt.id = v_tarefa.tipo_tarefa_id and tt.ativo = true and ch.ativo = true) then
+    raise exception 'Este tipo de tarefa ou canal foi desativado.';
+  end if;
+  if not exists (select 1 from public.interesses_validador where usuario_id = v_user_id and categoria_id = v_tarefa.categoria_id) then
+    raise exception 'Esta tarefa nao corresponde aos seus interesses.';
+  end if;
+  select id into v_habilitacao_id from public.habilitacoes
+  where tarefa_id = p_tarefa_id and validador_id = v_user_id and status in ('habilitado','em_andamento') limit 1;
+  if v_habilitacao_id is not null then return v_habilitacao_id; end if;
+  if v_tarefa.vagas_ocupadas + v_tarefa.vagas_concluidas >= v_tarefa.vagas then
+    raise exception 'As vagas desta tarefa foram preenchidas.';
+  end if;
+  v_prazo := greatest(1, least(coalesce((select valor::integer from public.configuracoes where chave = 'prazo_habilitacao_horas'), 2), 168));
+  insert into public.habilitacoes (tarefa_id, validador_id, handle, status, expira_em)
+  values (p_tarefa_id, v_user_id, v_handle, 'habilitado', now() + make_interval(hours => v_prazo))
+  returning id into v_habilitacao_id;
+  update public.tarefas set vagas_ocupadas = vagas_ocupadas + 1, atualizado_em = now() where id = p_tarefa_id;
+  return v_habilitacao_id;
+end;
+$$;
+revoke all on function public.habilitar_tarefa(uuid) from public, anon;
+grant execute on function public.habilitar_tarefa(uuid) to authenticated;
