@@ -193,6 +193,7 @@ export interface FileRoutesById {
   '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
   '/validador/ganhos': typeof ValidadorGanhosRoute
   '/validador/perfil': typeof ValidadorPerfilRoute
+  '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
