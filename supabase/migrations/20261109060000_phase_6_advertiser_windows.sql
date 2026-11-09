@@ -197,7 +197,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public, auth, pg_temp
-as $
+as $$
 declare
   v_nome text;
   v_ativa boolean;
@@ -249,7 +249,7 @@ begin
 
   return new;
 end;
-$;
+$$;
 
 revoke all on function private.validar_restricao_publicacao() from public, anon, authenticated;
 
@@ -299,7 +299,7 @@ language plpgsql
 stable
 security definer
 set search_path = public, auth, pg_temp
-as $
+as $$
 declare
   v_valor numeric(14,2);
 begin
@@ -311,7 +311,7 @@ begin
   where chave = 'pacote_validacao_minimo';
   return coalesce(v_valor, 100);
 end;
-$;
+$$;
 
 create or replace function public.duplicar_publicacao(p_publicacao_id uuid)
 returns uuid
