@@ -51,17 +51,16 @@ create table if not exists public.niveis (
   nome text not null unique,
   ordem smallint not null unique check (ordem > 0),
   tarefas_validas_minimas integer not null default 0 check (tarefas_validas_minimas >= 0),
-  bonus_percentual numeric(5,2) not null default 0 check (bonus_percentual >= 0 and bonus_percentual <= 100),
   ativo boolean not null default true,
   criado_em timestamptz not null default now()
 );
 
-insert into public.niveis (nome, ordem, tarefas_validas_minimas, bonus_percentual)
+insert into public.niveis (nome, ordem, tarefas_validas_minimas)
 values
-  ('Bronze', 1, 0, 0),
-  ('Prata', 2, 50, 0),
-  ('Ouro', 3, 200, 0),
-  ('Diamante', 4, 500, 0)
+  ('Bronze', 1, 0),
+  ('Prata', 2, 50),
+  ('Ouro', 3, 200),
+  ('Diamante', 4, 500)
 on conflict (nome) do nothing;
 
 create table if not exists public.indicacoes (
