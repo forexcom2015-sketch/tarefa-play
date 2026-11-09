@@ -20,7 +20,7 @@ type SaquePendente = {
   status: "solicitado" | "pago" | "rejeitado";
   solicitado_em: string;
 };
-type Nivel = { id: string; nome: string; tarefas_validas_minimas: number; bonus_percentual: number; ordem: number };
+type Nivel = { id: string; nome: string; tarefas_validas_minimas: number; ordem: number };
 
 const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
@@ -92,7 +92,7 @@ function PainelAdmin() {
     setErroFinanceiro("");
     const [saquesResult, niveisResult] = await Promise.all([
       (supabase as any).from("saques").select("id,carteira_id,valor,status,solicitado_em").eq("status", "solicitado").order("solicitado_em", { ascending: true }),
-      (supabase as any).from("niveis").select("id,nome,tarefas_validas_minimas,bonus_percentual,ordem").order("ordem"),
+      (supabase as any).from("niveis").select("id,nome,tarefas_validas_minimas,ordem").order("ordem"),
     ]);
     if (saquesResult.error || niveisResult.error) {
       setErroFinanceiro("O módulo financeiro ainda não está disponível. Confirme se a migration da Fase 4 foi aplicada no Supabase.");
@@ -124,16 +124,14 @@ function PainelAdmin() {
   async function salvarNivel(nivel: Nivel, form: HTMLFormElement) {
     const dados = new FormData(form);
     const tarefas = Number(dados.get("tarefas_validas_minimas"));
-    const bonus = Number(dados.get("bonus_percentual"));
-    if (!Number.isInteger(tarefas) || tarefas < 0 || !Number.isFinite(bonus) || bonus < 0 || bonus > 100) {
-      setErroFinanceiro("Informe critérios válidos para o nível e bônus entre 0% e 100%.");
+    if (!Number.isInteger(tarefas) || tarefas < 0) {
+      setErroFinanceiro("Informe uma quantidade mínima de tarefas válidas igual ou maior que zero.");
       return;
     }
     setSalvando(nivel.id);
     setErroFinanceiro("");
     const { error: nivelError } = await (supabase as any).from("niveis").update({
       tarefas_validas_minimas: tarefas,
-      bonus_percentual: bonus,
     }).eq("id", nivel.id);
     setSalvando(null);
     if (nivelError) setErroFinanceiro(nivelError.message || "Não foi possível salvar o nível.");
@@ -317,19 +315,16 @@ function PainelAdmin() {
           <div className="mt-8 space-y-3">
             <div>
               <h3 className="font-semibold text-foreground">Critérios de níveis</h3>
-              <p className="text-sm text-muted-foreground">Ajuste a quantidade mínima de tarefas válidas e o percentual de bônus configurado para cada nível.</p>
+              <p className="text-sm text-muted-foreground">Ajuste a quantidade mínima de tarefas válidas para cada nível. O bônus de indicação é configurado separadamente.</p>
             </div>
             {niveis.map((nivel) => (
-              <form key={nivel.id} onSubmit={(event) => { event.preventDefault(); void salvarNivel(nivel, event.currentTarget); }} className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+              <form key={nivel.id} onSubmit={(event) => { event.preventDefault(); void salvarNivel(nivel, event.currentTarget); }} className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
                 <div>
                   <p className="text-sm font-semibold text-foreground">{nivel.nome}</p>
                   <p className="text-xs text-muted-foreground">Ordem {nivel.ordem}</p>
                 </div>
                 <label className="space-y-1 text-xs text-muted-foreground">Tarefas válidas mínimas
                   <input name="tarefas_validas_minimas" type="number" min="0" step="1" defaultValue={nivel.tarefas_validas_minimas} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground" />
-                </label>
-                <label className="space-y-1 text-xs text-muted-foreground">Bônus do nível (%)
-                  <input name="bonus_percentual" type="number" min="0" max="100" step="0.01" defaultValue={nivel.bonus_percentual} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground" />
                 </label>
                 <button type="submit" disabled={salvando === nivel.id} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{salvando === nivel.id ? "Salvando..." : "Salvar"}</button>
               </form>
