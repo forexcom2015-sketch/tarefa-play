@@ -170,10 +170,12 @@ select tt.id, cat.id, 20, 0, 'https://example.com', 2, 'ativa', true
 from public.tipos_tarefa tt
 cross join public.categorias cat
 where cat.ativa = true
-where tt.acao in ('curtir_publicacao','visitar_pagina','assistir_video')
+  and tt.acao in ('curtir_publicacao','visitar_pagina','assistir_video')
   and not exists (
     select 1 from public.tarefas t
-    where t.tipo_tarefa_id = tt.id and t.is_demo = true
+    where t.tipo_tarefa_id = tt.id
+      and t.categoria_id = cat.id
+      and t.is_demo = true
   );
 
 -- Expira habilitacoes em ordem consistente de bloqueio, devolvendo vagas
