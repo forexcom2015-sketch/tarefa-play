@@ -99,7 +99,7 @@ function PerfilValidador() {
         <>
           <div className="grid gap-3 sm:grid-cols-3">
             <article className="rounded-xl border border-border bg-card p-4">
-              <p className="text-xs text-muted-foreground">Instagram aprovado</p>
+              <p className="text-xs text-muted-foreground">Conta Instagram</p>
               <p className="mt-1 font-semibold text-foreground">{handle.startsWith("@") ? handle : handle === "Não cadastrado" ? handle : `@${handle}`}</p>
               <p className="mt-1 text-xs capitalize text-muted-foreground">{statusInstagram}</p>
             </article>
