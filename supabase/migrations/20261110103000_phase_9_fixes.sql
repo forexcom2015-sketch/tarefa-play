@@ -122,6 +122,9 @@ as $function$
 declare
   v_canal_id uuid;
   v_dia date;
+  v_canal text; v_origem_canal text;
+  v_requisito integer; v_liberada integer; v_ciclica_regra boolean;
+  v_source_count integer; v_creditos integer; v_ciclica_global boolean := true; v_destino_id uuid;
 begin
   if new.status <> 'validada' or old.status = 'validada' or new.validada_em is null then
     return new;
