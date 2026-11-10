@@ -66,7 +66,7 @@ function TiposTarefaAdmin() {
     setErro("");
     setMensagem("");
     const { error } = await db.from("tipos_tarefa").update({
-      nome: nomes[item.id].trim(),
+      nome: (nomes[item.id] ?? "").trim(),
       valor_validador: Math.round(valor * 100) / 100,
       metodo_verificacao: metodosPorId[item.id],
       ativo: ativos[item.id],

@@ -15,23 +15,23 @@ import { Route as AnuncianteRouteImport } from './routes/anunciante'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ValidadorRouteImport } from './routes/validador'
-import { Route as CadastroCompletarRouteImport } from './routes/cadastro.completar'
-import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminCadastrosRouteImport } from './routes/admin.cadastros'
+import { Route as AdminChamadosTokenRouteImport } from './routes/admin.chamados-token'
+import { Route as AdminTiposTarefaRouteImport } from './routes/admin.tipos-tarefa'
 import { Route as AnuncianteIndexRouteImport } from './routes/anunciante.index'
-import { Route as AnunciantePublicacoesRouteImport } from './routes/anunciante.publicacoes'
-import { Route as AnuncianteValidacoesRouteImport } from './routes/anunciante.validacoes'
+import { Route as AnuncianteAutomacaoRouteImport } from './routes/anunciante.automacao'
 import { Route as AnuncianteCarteiraRouteImport } from './routes/anunciante.carteira'
 import { Route as AnuncianteConfiguracoesRouteImport } from './routes/anunciante.configuracoes'
+import { Route as AnunciantePublicacoesRouteImport } from './routes/anunciante.publicacoes'
+import { Route as AnuncianteTarefasRouteImport } from './routes/anunciante.tarefas'
+import { Route as AnuncianteValidacoesRouteImport } from './routes/anunciante.validacoes'
+import { Route as CadastroCompletarRouteImport } from './routes/cadastro.completar'
 import { Route as ValidadorIndexRouteImport } from './routes/validador.index'
-import { Route as ValidadorMinhasTarefasRouteImport } from './routes/validador.minhas-tarefas'
 import { Route as ValidadorGanhosRouteImport } from './routes/validador.ganhos'
+import { Route as ValidadorMinhasTarefasRouteImport } from './routes/validador.minhas-tarefas'
 import { Route as ValidadorPerfilRouteImport } from './routes/validador.perfil'
 import { Route as ValidadorExecutarHabilitacaoIdRouteImport } from './routes/validador.executar.$habilitacaoId'
-import { Route as AdminTiposTarefaRouteImport } from './routes/admin.tipos-tarefa'
-import { Route as AdminChamadosTokenRouteImport } from './routes/admin.chamados-token'
-import { Route as AnuncianteTarefasRouteImport } from './routes/anunciante.tarefas'
-import { Route as AnuncianteAutomacaoRouteImport } from './routes/anunciante.automacao'
 import { Route as ValidadorTokenHabilitacaoIdRouteImport } from './routes/validador.token.$habilitacaoId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -69,19 +69,29 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
+  id: '/cadastros',
+  path: '/cadastros',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminChamadosTokenRoute = AdminChamadosTokenRouteImport.update({
+  id: '/chamados-token',
+  path: '/chamados-token',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTiposTarefaRoute = AdminTiposTarefaRouteImport.update({
+  id: '/tipos-tarefa',
+  path: '/tipos-tarefa',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AnuncianteIndexRoute = AnuncianteIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AnuncianteRoute,
 } as any)
-const AnunciantePublicacoesRoute = AnunciantePublicacoesRouteImport.update({
-  id: '/publicacoes',
-  path: '/publicacoes',
-  getParentRoute: () => AnuncianteRoute,
-} as any)
-const AnuncianteValidacoesRoute = AnuncianteValidacoesRouteImport.update({
-  id: '/validacoes',
-  path: '/validacoes',
+const AnuncianteAutomacaoRoute = AnuncianteAutomacaoRouteImport.update({
+  id: '/automacao',
+  path: '/automacao',
   getParentRoute: () => AnuncianteRoute,
 } as any)
 const AnuncianteCarteiraRoute = AnuncianteCarteiraRouteImport.update({
@@ -94,49 +104,29 @@ const AnuncianteConfiguracoesRoute = AnuncianteConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => AnuncianteRoute,
 } as any)
-const CadastroCompletarRoute = CadastroCompletarRouteImport.update({
-  id: '/completar',
-  path: '/completar',
-  getParentRoute: () => CadastroRoute,
-} as any)
-const AdminCadastrosRoute = AdminCadastrosRouteImport.update({
-  id: '/cadastros',
-  path: '/cadastros',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTiposTarefaRoute = AdminTiposTarefaRouteImport.update({
-  id: '/tipos-tarefa',
-  path: '/tipos-tarefa',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminChamadosTokenRoute = AdminChamadosTokenRouteImport.update({
-  id: '/chamados-token',
-  path: '/chamados-token',
-  getParentRoute: () => AdminRoute,
+const AnunciantePublicacoesRoute = AnunciantePublicacoesRouteImport.update({
+  id: '/publicacoes',
+  path: '/publicacoes',
+  getParentRoute: () => AnuncianteRoute,
 } as any)
 const AnuncianteTarefasRoute = AnuncianteTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
   getParentRoute: () => AnuncianteRoute,
 } as any)
-const AnuncianteAutomacaoRoute = AnuncianteAutomacaoRouteImport.update({
-  id: '/automacao',
-  path: '/automacao',
+const AnuncianteValidacoesRoute = AnuncianteValidacoesRouteImport.update({
+  id: '/validacoes',
+  path: '/validacoes',
   getParentRoute: () => AnuncianteRoute,
 } as any)
-const ValidadorTokenHabilitacaoIdRoute = ValidadorTokenHabilitacaoIdRouteImport.update({
-  id: '/token/$habilitacaoId',
-  path: '/token/$habilitacaoId',
-  getParentRoute: () => ValidadorRoute,
+const CadastroCompletarRoute = CadastroCompletarRouteImport.update({
+  id: '/completar',
+  path: '/completar',
+  getParentRoute: () => CadastroRoute,
 } as any)
 const ValidadorIndexRoute = ValidadorIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ValidadorRoute,
-} as any)
-const ValidadorMinhasTarefasRoute = ValidadorMinhasTarefasRouteImport.update({
-  id: '/minhas-tarefas',
-  path: '/minhas-tarefas',
   getParentRoute: () => ValidadorRoute,
 } as any)
 const ValidadorGanhosRoute = ValidadorGanhosRouteImport.update({
@@ -144,16 +134,28 @@ const ValidadorGanhosRoute = ValidadorGanhosRouteImport.update({
   path: '/ganhos',
   getParentRoute: () => ValidadorRoute,
 } as any)
+const ValidadorMinhasTarefasRoute = ValidadorMinhasTarefasRouteImport.update({
+  id: '/minhas-tarefas',
+  path: '/minhas-tarefas',
+  getParentRoute: () => ValidadorRoute,
+} as any)
 const ValidadorPerfilRoute = ValidadorPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
   getParentRoute: () => ValidadorRoute,
 } as any)
-const ValidadorExecutarHabilitacaoIdRoute = ValidadorExecutarHabilitacaoIdRouteImport.update({
-  id: '/executar/$habilitacaoId',
-  path: '/executar/$habilitacaoId',
-  getParentRoute: () => ValidadorRoute,
-} as any)
+const ValidadorExecutarHabilitacaoIdRoute =
+  ValidadorExecutarHabilitacaoIdRouteImport.update({
+    id: '/executar/$habilitacaoId',
+    path: '/executar/$habilitacaoId',
+    getParentRoute: () => ValidadorRoute,
+  } as any)
+const ValidadorTokenHabilitacaoIdRoute =
+  ValidadorTokenHabilitacaoIdRouteImport.update({
+    id: '/token/$habilitacaoId',
+    path: '/token/$habilitacaoId',
+    getParentRoute: () => ValidadorRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -162,22 +164,22 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
-  '/cadastro/completar': typeof CadastroCompletarRoute
   '/admin/cadastros': typeof AdminCadastrosRoute
-  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
   '/admin/chamados-token': typeof AdminChamadosTokenRoute
-  '/admin/': typeof AdminIndexRoute
-  '/anunciante/': typeof AnuncianteIndexRoute
-  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
-  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
+  '/anunciante/automacao': typeof AnuncianteAutomacaoRoute
   '/anunciante/carteira': typeof AnuncianteCarteiraRoute
   '/anunciante/configuracoes': typeof AnuncianteConfiguracoesRoute
+  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
   '/anunciante/tarefas': typeof AnuncianteTarefasRoute
-  '/anunciante/automacao': typeof AnuncianteAutomacaoRoute
-  '/validador/': typeof ValidadorIndexRoute
-  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
   '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
   '/validador/perfil': typeof ValidadorPerfilRoute
+  '/admin/': typeof AdminIndexRoute
+  '/anunciante/': typeof AnuncianteIndexRoute
+  '/validador/': typeof ValidadorIndexRoute
   '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
   '/validador/token/$habilitacaoId': typeof ValidadorTokenHabilitacaoIdRoute
 }
@@ -185,22 +187,22 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRouteWithChildren
   '/entrar': typeof EntrarRoute
-  '/admin': typeof AdminIndexRoute
-  '/anunciante': typeof AnuncianteIndexRoute
-  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
-  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/chamados-token': typeof AdminChamadosTokenRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
+  '/anunciante/automacao': typeof AnuncianteAutomacaoRoute
   '/anunciante/carteira': typeof AnuncianteCarteiraRoute
   '/anunciante/configuracoes': typeof AnuncianteConfiguracoesRoute
-  '/validador': typeof ValidadorIndexRoute
-  '/cadastro/completar': typeof CadastroCompletarRoute
-  '/admin/cadastros': typeof AdminCadastrosRoute
-  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
-  '/admin/chamados-token': typeof AdminChamadosTokenRoute
+  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
   '/anunciante/tarefas': typeof AnuncianteTarefasRoute
-  '/anunciante/automacao': typeof AnuncianteAutomacaoRoute
-  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
   '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
   '/validador/perfil': typeof ValidadorPerfilRoute
+  '/admin': typeof AdminIndexRoute
+  '/anunciante': typeof AnuncianteIndexRoute
+  '/validador': typeof ValidadorIndexRoute
   '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
   '/validador/token/$habilitacaoId': typeof ValidadorTokenHabilitacaoIdRoute
 }
@@ -212,23 +214,24 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/validador': typeof ValidadorRouteWithChildren
-  '/admin/': typeof AdminIndexRoute
-  '/anunciante/': typeof AnuncianteIndexRoute
-  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
-  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/admin/cadastros': typeof AdminCadastrosRoute
+  '/admin/chamados-token': typeof AdminChamadosTokenRoute
+  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
+  '/anunciante/automacao': typeof AnuncianteAutomacaoRoute
   '/anunciante/carteira': typeof AnuncianteCarteiraRoute
   '/anunciante/configuracoes': typeof AnuncianteConfiguracoesRoute
-  '/validador/': typeof ValidadorIndexRoute
-  '/cadastro/completar': typeof CadastroCompletarRoute
-  '/admin/cadastros': typeof AdminCadastrosRoute
-  '/admin/tipos-tarefa': typeof AdminTiposTarefaRoute
-  '/admin/chamados-token': typeof AdminChamadosTokenRoute
+  '/anunciante/publicacoes': typeof AnunciantePublicacoesRoute
   '/anunciante/tarefas': typeof AnuncianteTarefasRoute
-  '/anunciante/automacao': typeof AnuncianteAutomacaoRoute
-  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
+  '/anunciante/validacoes': typeof AnuncianteValidacoesRoute
+  '/cadastro/completar': typeof CadastroCompletarRoute
   '/validador/ganhos': typeof ValidadorGanhosRoute
+  '/validador/minhas-tarefas': typeof ValidadorMinhasTarefasRoute
   '/validador/perfil': typeof ValidadorPerfilRoute
+  '/admin/': typeof AdminIndexRoute
+  '/anunciante/': typeof AnuncianteIndexRoute
+  '/validador/': typeof ValidadorIndexRoute
   '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
+  '/validador/token/$habilitacaoId': typeof ValidadorTokenHabilitacaoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -239,26 +242,47 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/entrar'
     | '/validador'
-    | '/admin/'
-    | '/anunciante/'
-    | '/anunciante/publicacoes'
-    | '/anunciante/validacoes'
+    | '/admin/cadastros'
+    | '/admin/chamados-token'
+    | '/admin/tipos-tarefa'
+    | '/anunciante/automacao'
     | '/anunciante/carteira'
     | '/anunciante/configuracoes'
-    | '/validador/'
-    | '/cadastro/completar'
-    | '/admin/cadastros'
-    | '/admin/tipos-tarefa'
-    | '/admin/chamados-token'
+    | '/anunciante/publicacoes'
     | '/anunciante/tarefas'
-    | '/anunciante/automacao'
-    | '/validador/minhas-tarefas'
+    | '/anunciante/validacoes'
+    | '/cadastro/completar'
     | '/validador/ganhos'
+    | '/validador/minhas-tarefas'
     | '/validador/perfil'
+    | '/admin/'
+    | '/anunciante/'
+    | '/validador/'
     | '/validador/executar/$habilitacaoId'
     | '/validador/token/$habilitacaoId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cadastro' | '/entrar' | '/admin' | '/anunciante' | '/anunciante/publicacoes' | '/anunciante/validacoes' | '/anunciante/carteira' | '/anunciante/configuracoes' | '/anunciante/tarefas' | '/anunciante/automacao' | '/validador' | '/cadastro/completar' | '/admin/cadastros' | '/admin/tipos-tarefa' | '/admin/chamados-token' | '/validador/minhas-tarefas' | '/validador/ganhos' | '/validador/perfil' | '/validador/executar/$habilitacaoId' | '/validador/token/$habilitacaoId'
+  to:
+    | '/'
+    | '/cadastro'
+    | '/entrar'
+    | '/admin/cadastros'
+    | '/admin/chamados-token'
+    | '/admin/tipos-tarefa'
+    | '/anunciante/automacao'
+    | '/anunciante/carteira'
+    | '/anunciante/configuracoes'
+    | '/anunciante/publicacoes'
+    | '/anunciante/tarefas'
+    | '/anunciante/validacoes'
+    | '/cadastro/completar'
+    | '/validador/ganhos'
+    | '/validador/minhas-tarefas'
+    | '/validador/perfil'
+    | '/admin'
+    | '/anunciante'
+    | '/validador'
+    | '/validador/executar/$habilitacaoId'
+    | '/validador/token/$habilitacaoId'
   id:
     | '__root__'
     | '/'
@@ -267,22 +291,22 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/entrar'
     | '/validador'
-    | '/admin/'
-    | '/anunciante/'
-    | '/anunciante/publicacoes'
-    | '/anunciante/validacoes'
+    | '/admin/cadastros'
+    | '/admin/chamados-token'
+    | '/admin/tipos-tarefa'
+    | '/anunciante/automacao'
     | '/anunciante/carteira'
     | '/anunciante/configuracoes'
-    | '/validador/'
-    | '/cadastro/completar'
-    | '/admin/cadastros'
-    | '/admin/tipos-tarefa'
-    | '/admin/chamados-token'
+    | '/anunciante/publicacoes'
     | '/anunciante/tarefas'
-    | '/anunciante/automacao'
-    | '/validador/minhas-tarefas'
+    | '/anunciante/validacoes'
+    | '/cadastro/completar'
     | '/validador/ganhos'
+    | '/validador/minhas-tarefas'
     | '/validador/perfil'
+    | '/admin/'
+    | '/anunciante/'
+    | '/validador/'
     | '/validador/executar/$habilitacaoId'
     | '/validador/token/$habilitacaoId'
   fileRoutesById: FileRoutesById
@@ -347,18 +371,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/anunciante/publicacoes': {
-      id: '/anunciante/publicacoes'
-      path: '/publicacoes'
-      fullPath: '/anunciante/publicacoes'
-      preLoaderRoute: typeof AnunciantePublicacoesRouteImport
+    '/admin/cadastros': {
+      id: '/admin/cadastros'
+      path: '/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AdminCadastrosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/chamados-token': {
+      id: '/admin/chamados-token'
+      path: '/chamados-token'
+      fullPath: '/admin/chamados-token'
+      preLoaderRoute: typeof AdminChamadosTokenRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/tipos-tarefa': {
+      id: '/admin/tipos-tarefa'
+      path: '/tipos-tarefa'
+      fullPath: '/admin/tipos-tarefa'
+      preLoaderRoute: typeof AdminTiposTarefaRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/anunciante/': {
+      id: '/anunciante/'
+      path: '/'
+      fullPath: '/anunciante/'
+      preLoaderRoute: typeof AnuncianteIndexRouteImport
       parentRoute: typeof AnuncianteRoute
     }
-    '/anunciante/validacoes': {
-      id: '/anunciante/validacoes'
-      path: '/validacoes'
-      fullPath: '/anunciante/validacoes'
-      preLoaderRoute: typeof AnuncianteValidacoesRouteImport
+    '/anunciante/automacao': {
+      id: '/anunciante/automacao'
+      path: '/automacao'
+      fullPath: '/anunciante/automacao'
+      preLoaderRoute: typeof AnuncianteAutomacaoRouteImport
       parentRoute: typeof AnuncianteRoute
     }
     '/anunciante/carteira': {
@@ -375,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnuncianteConfiguracoesRouteImport
       parentRoute: typeof AnuncianteRoute
     }
+    '/anunciante/publicacoes': {
+      id: '/anunciante/publicacoes'
+      path: '/publicacoes'
+      fullPath: '/anunciante/publicacoes'
+      preLoaderRoute: typeof AnunciantePublicacoesRouteImport
+      parentRoute: typeof AnuncianteRoute
+    }
     '/anunciante/tarefas': {
       id: '/anunciante/tarefas'
       path: '/tarefas'
@@ -382,18 +434,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnuncianteTarefasRouteImport
       parentRoute: typeof AnuncianteRoute
     }
-    '/anunciante/automacao': {
-      id: '/anunciante/automacao'
-      path: '/automacao'
-      fullPath: '/anunciante/automacao'
-      preLoaderRoute: typeof AnuncianteAutomacaoRouteImport
-      parentRoute: typeof AnuncianteRoute
-    }
-    '/anunciante/': {
-      id: '/anunciante/'
-      path: '/'
-      fullPath: '/anunciante/'
-      preLoaderRoute: typeof AnuncianteIndexRouteImport
+    '/anunciante/validacoes': {
+      id: '/anunciante/validacoes'
+      path: '/validacoes'
+      fullPath: '/anunciante/validacoes'
+      preLoaderRoute: typeof AnuncianteValidacoesRouteImport
       parentRoute: typeof AnuncianteRoute
     }
     '/cadastro/completar': {
@@ -403,27 +448,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroCompletarRouteImport
       parentRoute: typeof CadastroRoute
     }
-    '/admin/cadastros': {
-      id: '/admin/cadastros'
-      path: '/cadastros'
-      fullPath: '/admin/cadastros'
-      preLoaderRoute: typeof AdminCadastrosRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/tipos-tarefa': {
-      id: '/admin/tipos-tarefa'
-      path: '/tipos-tarefa'
-      fullPath: '/admin/tipos-tarefa'
-      preLoaderRoute: typeof AdminTiposTarefaRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/chamados-token': {
-      id: '/admin/chamados-token'
-      path: '/chamados-token'
-      fullPath: '/admin/chamados-token'
-      preLoaderRoute: typeof AdminChamadosTokenRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/validador/': {
       id: '/validador/'
       path: '/'
@@ -431,18 +455,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ValidadorIndexRouteImport
       parentRoute: typeof ValidadorRoute
     }
-    '/validador/minhas-tarefas': {
-      id: '/validador/minhas-tarefas'
-      path: '/minhas-tarefas'
-      fullPath: '/validador/minhas-tarefas'
-      preLoaderRoute: typeof ValidadorMinhasTarefasRouteImport
-      parentRoute: typeof ValidadorRoute
-    }
     '/validador/ganhos': {
       id: '/validador/ganhos'
       path: '/ganhos'
       fullPath: '/validador/ganhos'
       preLoaderRoute: typeof ValidadorGanhosRouteImport
+      parentRoute: typeof ValidadorRoute
+    }
+    '/validador/minhas-tarefas': {
+      id: '/validador/minhas-tarefas'
+      path: '/minhas-tarefas'
+      fullPath: '/validador/minhas-tarefas'
+      preLoaderRoute: typeof ValidadorMinhasTarefasRouteImport
       parentRoute: typeof ValidadorRoute
     }
     '/validador/perfil': {
@@ -469,6 +493,46 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminCadastrosRoute: typeof AdminCadastrosRoute
+  AdminChamadosTokenRoute: typeof AdminChamadosTokenRoute
+  AdminTiposTarefaRoute: typeof AdminTiposTarefaRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCadastrosRoute: AdminCadastrosRoute,
+  AdminChamadosTokenRoute: AdminChamadosTokenRoute,
+  AdminTiposTarefaRoute: AdminTiposTarefaRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AnuncianteRouteChildren {
+  AnuncianteAutomacaoRoute: typeof AnuncianteAutomacaoRoute
+  AnuncianteCarteiraRoute: typeof AnuncianteCarteiraRoute
+  AnuncianteConfiguracoesRoute: typeof AnuncianteConfiguracoesRoute
+  AnunciantePublicacoesRoute: typeof AnunciantePublicacoesRoute
+  AnuncianteTarefasRoute: typeof AnuncianteTarefasRoute
+  AnuncianteValidacoesRoute: typeof AnuncianteValidacoesRoute
+  AnuncianteIndexRoute: typeof AnuncianteIndexRoute
+}
+
+const AnuncianteRouteChildren: AnuncianteRouteChildren = {
+  AnuncianteAutomacaoRoute: AnuncianteAutomacaoRoute,
+  AnuncianteCarteiraRoute: AnuncianteCarteiraRoute,
+  AnuncianteConfiguracoesRoute: AnuncianteConfiguracoesRoute,
+  AnunciantePublicacoesRoute: AnunciantePublicacoesRoute,
+  AnuncianteTarefasRoute: AnuncianteTarefasRoute,
+  AnuncianteValidacoesRoute: AnuncianteValidacoesRoute,
+  AnuncianteIndexRoute: AnuncianteIndexRoute,
+}
+
+const AnuncianteRouteWithChildren = AnuncianteRoute._addFileChildren(
+  AnuncianteRouteChildren,
+)
+
 interface CadastroRouteChildren {
   CadastroCompletarRoute: typeof CadastroCompletarRoute
 }
@@ -477,62 +541,24 @@ const CadastroRouteChildren: CadastroRouteChildren = {
   CadastroCompletarRoute: CadastroCompletarRoute,
 }
 
-const CadastroRouteWithChildren = CadastroRoute._addFileChildren(CadastroRouteChildren)
-
-interface AdminRouteChildren {
-  AdminIndexRoute: typeof AdminIndexRoute
-  AdminCadastrosRoute: typeof AdminCadastrosRoute
-  AdminTiposTarefaRoute: typeof AdminTiposTarefaRoute
-  AdminChamadosTokenRoute: typeof AdminChamadosTokenRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminIndexRoute: AdminIndexRoute,
-  AdminCadastrosRoute: AdminCadastrosRoute,
-  AdminTiposTarefaRoute: AdminTiposTarefaRoute,
-  AdminChamadosTokenRoute: AdminChamadosTokenRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
-interface AnuncianteRouteChildren {
-  AnuncianteIndexRoute: typeof AnuncianteIndexRoute
-  AnunciantePublicacoesRoute: typeof AnunciantePublicacoesRoute
-  AnuncianteValidacoesRoute: typeof AnuncianteValidacoesRoute
-  AnuncianteCarteiraRoute: typeof AnuncianteCarteiraRoute
-  AnuncianteConfiguracoesRoute: typeof AnuncianteConfiguracoesRoute
-  AnuncianteTarefasRoute: typeof AnuncianteTarefasRoute
-  AnuncianteAutomacaoRoute: typeof AnuncianteAutomacaoRoute
-}
-
-const AnuncianteRouteChildren: AnuncianteRouteChildren = {
-  AnuncianteIndexRoute: AnuncianteIndexRoute,
-  AnunciantePublicacoesRoute: AnunciantePublicacoesRoute,
-  AnuncianteValidacoesRoute: AnuncianteValidacoesRoute,
-  AnuncianteCarteiraRoute: AnuncianteCarteiraRoute,
-  AnuncianteConfiguracoesRoute: AnuncianteConfiguracoesRoute,
-  AnuncianteTarefasRoute: AnuncianteTarefasRoute,
-  AnuncianteAutomacaoRoute: AnuncianteAutomacaoRoute,
-}
-
-const AnuncianteRouteWithChildren = AnuncianteRoute._addFileChildren(
-  AnuncianteRouteChildren,
+const CadastroRouteWithChildren = CadastroRoute._addFileChildren(
+  CadastroRouteChildren,
 )
 
 interface ValidadorRouteChildren {
-  ValidadorIndexRoute: typeof ValidadorIndexRoute
-  ValidadorMinhasTarefasRoute: typeof ValidadorMinhasTarefasRoute
   ValidadorGanhosRoute: typeof ValidadorGanhosRoute
+  ValidadorMinhasTarefasRoute: typeof ValidadorMinhasTarefasRoute
   ValidadorPerfilRoute: typeof ValidadorPerfilRoute
+  ValidadorIndexRoute: typeof ValidadorIndexRoute
   ValidadorExecutarHabilitacaoIdRoute: typeof ValidadorExecutarHabilitacaoIdRoute
   ValidadorTokenHabilitacaoIdRoute: typeof ValidadorTokenHabilitacaoIdRoute
 }
 
 const ValidadorRouteChildren: ValidadorRouteChildren = {
-  ValidadorIndexRoute: ValidadorIndexRoute,
-  ValidadorMinhasTarefasRoute: ValidadorMinhasTarefasRoute,
   ValidadorGanhosRoute: ValidadorGanhosRoute,
+  ValidadorMinhasTarefasRoute: ValidadorMinhasTarefasRoute,
   ValidadorPerfilRoute: ValidadorPerfilRoute,
+  ValidadorIndexRoute: ValidadorIndexRoute,
   ValidadorExecutarHabilitacaoIdRoute: ValidadorExecutarHabilitacaoIdRoute,
   ValidadorTokenHabilitacaoIdRoute: ValidadorTokenHabilitacaoIdRoute,
 }
@@ -548,7 +574,6 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRouteWithChildren,
   EntrarRoute: EntrarRoute,
   ValidadorRoute: ValidadorRouteWithChildren,
-  CadastroCompletarRoute: CadastroCompletarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -143,7 +143,7 @@ function ExecutarValidacao() {
             <fieldset>
               <legend className="text-sm font-medium text-foreground">Você compraria?</legend>
               <div className="mt-2 flex flex-wrap gap-2">
-                {["sim", "talvez", "nao"].map((opcao) => <Button key={opcao} type="button" variant={compraria === opcao ? "default" : "outline"} onClick={() => setCompraria(opcao)}>{opcao === "nao" ? "Não" : opcao[0].toUpperCase() + opcao.slice(1)}</Button>)}
+                {["sim", "talvez", "nao"].map((opcao) => <Button key={opcao} type="button" variant={compraria === opcao ? "default" : "outline"} onClick={() => setCompraria(opcao)}>{opcao === "nao" ? "Não" : (opcao[0] ?? "").toUpperCase() + opcao.slice(1)}</Button>)}
               </div>
             </fieldset>
 

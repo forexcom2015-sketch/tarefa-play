@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import iconeMarca from "@/assets/logo-icone.png.asset.json";
 
 type Item = { to: string; label: string };
 
@@ -9,10 +10,13 @@ async function sair(navigate: ReturnType<typeof useNavigate>) {
   navigate({ to: "/entrar" });
 }
 
-export function Logo() {
+export function Logo({ classe = "h-7 w-7" }: { classe?: string }) {
   return (
-    <span className="text-lg font-extrabold tracking-tight text-primary">
-      Tarefa<span className="text-accent">-Play</span>
+    <span className="inline-flex items-center gap-2">
+      <img src={iconeMarca.url} alt="" aria-hidden className={`${classe} shrink-0 rounded-lg`} />
+      <span className="text-lg font-extrabold tracking-tight text-primary">
+        Tarefa<span className="text-accent">-Play</span>
+      </span>
     </span>
   );
 }

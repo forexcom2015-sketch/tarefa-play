@@ -55,7 +55,7 @@ function PerfilValidador() {
       const total = tarefasResult.count ?? 0;
       const niveis = (niveisResult.data ?? []) as { nome: string; tarefas_validas_minimas: number }[];
       const elegiveis = niveis.filter((item) => total >= item.tarefas_validas_minimas);
-      setNivel(elegiveis.length ? elegiveis[elegiveis.length - 1].nome : "Bronze");
+      setNivel(elegiveis.length ? (elegiveis[elegiveis.length - 1]?.nome ?? "Bronze") : "Bronze");
     } else {
       setIndicacoes(null);
       setNivel("Disponível após a Fase 4");

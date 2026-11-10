@@ -17,7 +17,7 @@ function validarCnpj(valor: string) {
   const cnpj = valor.replace(/\D/g, "");
   if (cnpj.length !== 14 || /^(\d)\1{13}$/.test(cnpj)) return false;
   const calcular = (base: string, pesos: number[]) => {
-    const soma = [...base].reduce((total, digito, i) => total + Number(digito) * pesos[i], 0);
+    const soma = [...base].reduce((total, digito, i) => total + Number(digito) * (pesos[i] ?? 0), 0);
     const resto = soma % 11;
     return resto < 2 ? 0 : 11 - resto;
   };
@@ -81,7 +81,7 @@ function CompletarCadastro() {
       if (!ativo) return;
       if (papelAtual === "validador" || papelAtual === "anunciante") setPapel(papelAtual);
       if (cats.data) setCategorias(cats.data as Categoria[]);
-      if (perfil.data.user?.user_metadata?.nome) setNome(String(perfil.data.user.user_metadata.nome));
+      if (perfil.data.user?.user_metadata?.["nome"]) setNome(String(perfil.data.user.user_metadata["nome"]));
     }
     void carregar();
     return () => { ativo = false; };

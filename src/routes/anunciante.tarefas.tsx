@@ -208,7 +208,7 @@ function TarefasReais() {
       <div className="space-y-3">
         <h3 className="font-semibold text-foreground">Chamados de código não recebido</h3>
         {chamados.length === 0 ? <p className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">Nenhum chamado aguardando resposta.</p> : chamados.map((ticket) => <article key={ticket.id} className="space-y-2 rounded-lg border border-border bg-card p-4 text-sm">
-          <div className="flex flex-wrap justify-between gap-2"><strong>{ticket.handle ?? "Validador"}</strong><span className="text-xs text-muted-foreground">{ticket.status} · prazo {dataHora(ticket.prazo)}</span></div>
+          <div className="flex flex-wrap justify-between gap-2"><strong>{ticket.habilitacoes?.handle ?? "Validador"}</strong><span className="text-xs text-muted-foreground">{ticket.status} · prazo {dataHora(ticket.prazo)}</span></div>
           <p>{ticket.motivo}</p><a href={ticket.link_comentario} target="_blank" rel="noreferrer" className="text-primary underline">Ver comentário informado</a>
           {ticket.evidencia && <p className="break-all text-xs text-muted-foreground">Evidência: {ticket.evidencia}</p>}
           {ticket.status === "aguardando_anunciante" && <><textarea rows={2} value={respostas[ticket.id] ?? ""} onChange={(e) => setRespostas((atual) => ({ ...atual, [ticket.id]: e.target.value }))} placeholder="Informe que enviou o código ou explique a situação..." className="w-full rounded-md border border-input bg-background p-2" /><Button size="sm" disabled={processando === ticket.id} onClick={() => void responderChamado(ticket.id)}>{processando === ticket.id ? "Enviando..." : "Responder chamado"}</Button></>}
