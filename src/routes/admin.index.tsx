@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Phase9AdminPanel } from "@/components/phase9-admin-panel";
 
-type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte" | "publicacoes";
+type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte" | "publicacoes" | "fase9";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
 type Categoria = { id: string; nome: string; ativa: boolean };
 type RegistroAuditoria = {
@@ -30,6 +31,7 @@ const abas: { id: Aba; titulo: string }[] = [
   { id: "financeiro", titulo: "Financeiro" },
   { id: "suporte", titulo: "Suporte" },
   { id: "publicacoes", titulo: "Revisão de publicações" },
+  { id: "fase9", titulo: "Liberação e bloqueios" },
 ];
 
 const padroes: Record<string, { rotulo: string; tipo: "numero" | "booleano" }> = {
@@ -232,6 +234,8 @@ function PainelAdmin() {
       {erro && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
       {mensagem && <p role="status" className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm text-foreground">{mensagem}</p>}
       {carregando && <p role="status" className="text-sm text-muted-foreground">Carregando dados administrativos...</p>}
+
+      {aba === "fase9" && <Phase9AdminPanel />}
 
       {aba === "configuracoes" && (
         <section className="space-y-3">
