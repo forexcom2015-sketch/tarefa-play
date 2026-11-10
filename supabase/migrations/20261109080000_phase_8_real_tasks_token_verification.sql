@@ -65,7 +65,7 @@ language sql
 stable
 security definer
 set search_path = public, auth, pg_temp
-as $
+as $func$
   select exists (
     select 1
     from public.habilitacoes h
@@ -74,7 +74,7 @@ as $
     where h.id = p_habilitacao_id
       and p.anunciante_id = (select auth.uid())
   );
-$;
+$func$;
 revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon;
 grant execute on function private.anunciante_do_chamado_token(uuid) to authenticated;
 
