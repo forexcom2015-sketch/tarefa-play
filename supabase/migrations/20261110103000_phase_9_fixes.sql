@@ -62,6 +62,8 @@ declare
   v_dia date := ((now() at time zone 'America/Sao_Paulo')::date);
   v_i integer := 0; v_s integer := 0; v_y integer := 0;
   v_ciclica boolean := true;
+  v_req_s integer; v_rel_s integer; v_cic_s boolean;
+  v_req_y integer; v_rel_y integer; v_cic_y boolean;
 begin
   if v_user is null or not (select private.has_role('validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem consultar a liberação.';
