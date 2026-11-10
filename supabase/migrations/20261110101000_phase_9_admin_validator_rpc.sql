@@ -20,7 +20,7 @@ begin
         'quantidade_liberada', r.quantidade_liberada,
         'ciclica', r.ciclica,
         'ativo', r.ativo
-      ) order by co.nome, o.nome), '[]'::jsonb)
+      ) order by co.nome, o.nome)
       from public.regras_liberacao r
       join public.tipos_tarefa o on o.id=r.tipo_origem_id
       join public.canais co on co.id=o.canal_id
