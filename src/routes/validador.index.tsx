@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { getPhase9DeviceId, type LiberacaoStatus, type BloqueioStatus, type Phase9RpcClient } from "@/lib/phase9";
 
 type Tarefa = {
   id: string;
@@ -21,6 +22,7 @@ type Tarefa = {
 };
 
 const db = supabase as any;
+const phase9 = supabase as unknown as Phase9RpcClient;
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor));
 
 export const Route = createFileRoute("/validador/")({
@@ -34,6 +36,10 @@ function TarefasDisponiveis() {
   const [habilitando, setHabilitando] = useState<string | null>(null);
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [liberacoes, setLiberacoes] = useState<LiberacaoStatus[]>([]);
+  const [bloqueio, setBloqueio] = useState<BloqueioStatus>({});
+  const [contestacaoTexto, setContestacaoTexto] = useState("");
+  const [contestando, setContestando] = useState(false);
 
   const carregar = useCallback(async () => {
     setCarregando(true);
@@ -55,6 +61,12 @@ function TarefasDisponiveis() {
     } else {
       setTarefas((data ?? []) as Tarefa[]);
     }
+    const [liberacaoResult, bloqueioResult] = await Promise.all([
+      phase9.rpc("obter_status_liberacao_fase9"),
+      phase9.rpc("obter_bloqueio_validador_fase9"),
+    ]);
+    if (!liberacaoResult.error) setLiberacoes((liberacaoResult.data ?? []) as LiberacaoStatus[]);
+    if (!bloqueioResult.error) setBloqueio((bloqueioResult.data ?? {}) as BloqueioStatus);
     setCarregando(false);
   }, []);
 
@@ -68,7 +80,7 @@ function TarefasDisponiveis() {
     setHabilitando(tarefaId);
     setErro("");
     setMensagem("");
-    const { error: habilitacaoError } = await db.rpc("habilitar_tarefa", { p_tarefa_id: tarefaId });
+    const { error: habilitacaoError } = await phase9.rpc("habilitar_tarefa", { p_tarefa_id: tarefaId, p_dispositivo_id: getPhase9DeviceId() });
     setHabilitando(null);
     if (habilitacaoError) {
       setErro(habilitacaoError.message || "Não foi possível reservar esta vaga.");
@@ -86,6 +98,59 @@ function TarefasDisponiveis() {
         <h2 className="text-xl font-bold text-foreground">Tarefas disponíveis</h2>
         <p className="mt-1 text-sm text-muted-foreground">O feed mostra somente categorias dos seus interesses. A vaga fica reservada pelo prazo configurado pela administração.</p>
       </div>
+      {bloqueio.bloqueio && (
+        <section className="rounded-xl border border-destructive/40 bg-destructive/10 p-4" aria-label="Bloqueio de tarefas">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="font-semibold text-destructive">Novas tarefas bloqueadas</h3>
+              <p className="mt-1 text-sm text-foreground">{bloqueio.bloqueio.motivo}</p>
+              <p className="mt-1 text-xs text-muted-foreground">Fim: {new Date(bloqueio.bloqueio.fim).toLocaleString("pt-BR")}</p>
+            </div>
+          </div>
+          {!bloqueio.contestacao && (
+            <form className="mt-3 space-y-2" onSubmit={async (event) => {
+              event.preventDefault();
+              setContestando(true);
+              const result = await phase9.rpc("contestar_bloqueio", {
+                p_bloqueio_id: bloqueio.bloqueio?.id,
+                p_texto: contestacaoTexto,
+              });
+              setContestando(false);
+              if (result.error) setErro(result.error.message || "Não foi possível abrir a contestação.");
+              else {
+                setMensagem("Contestação enviada para o Admin.");
+                setContestacaoTexto("");
+                const atual = await phase9.rpc("obter_bloqueio_validador_fase9");
+                if (!atual.error) setBloqueio((atual.data ?? {}) as BloqueioStatus);
+              }
+            }}>
+              <label htmlFor="contestacao-bloqueio" className="text-xs font-medium text-foreground">Contestar bloqueio</label>
+              <textarea id="contestacao-bloqueio" value={contestacaoTexto} onChange={(event) => setContestacaoTexto(event.target.value)}
+                minLength={10} maxLength={2000} rows={3} required
+                placeholder="Explique o motivo da contestação."
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground" />
+              <Button type="submit" size="sm" disabled={contestando || contestacaoTexto.trim().length < 10}>
+                {contestando ? "Enviando..." : "Enviar contestação"}
+              </Button>
+            </form>
+          )}
+          {bloqueio.contestacao && <p className="mt-3 text-xs text-muted-foreground">Contestação: {bloqueio.contestacao.status === "aberta" ? "aguardando decisão do Admin" : bloqueio.contestacao.status}</p>}
+        </section>
+      )}
+
+      {liberacoes.length > 0 && (
+        <section className="grid gap-3 sm:grid-cols-3" aria-label="Progresso da liberação">
+          {liberacoes.map((item) => (
+            <article key={item.canal} className="rounded-xl border border-border bg-card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.canal}</p>
+              <p className="mt-1 text-2xl font-bold text-foreground">{item.tarefas_concluidas}</p>
+              <p className="text-xs text-muted-foreground">tarefas validadas hoje</p>
+              <p className="mt-2 text-sm text-primary">{item.creditos_disponiveis > 0 ? `${item.creditos_disponiveis} liberadas` : item.mensagem}</p>
+            </article>
+          ))}
+        </section>
+      )}
+
       {erro && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
       {mensagem && <p role="status" className="rounded-md border border-border bg-muted p-3 text-sm text-foreground">{mensagem}</p>}
       {carregando ? <p role="status" className="text-sm text-muted-foreground">Carregando tarefas...</p> : tarefas.length === 0 ? (
