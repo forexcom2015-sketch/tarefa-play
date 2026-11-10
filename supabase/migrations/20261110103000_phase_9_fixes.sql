@@ -168,6 +168,7 @@ begin
       on conflict (validador_id,dia,canal_id) do update
         set creditos_liberados=excluded.creditos_liberados,creditos_consumidos=excluded.creditos_consumidos,atualizado_em=now();
     end loop;
+  end if;
   return new;
 end;
 $function$;
