@@ -59,6 +59,26 @@ create index if not exists chamados_token_fila_idx
 alter table public.tokens_tarefa enable row level security;
 alter table public.chamados_token enable row level security;
 
+create or replace function private.anunciante_do_chamado_token(p_habilitacao_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, auth, pg_temp
+as $
+  select exists (
+    select 1
+    from public.habilitacoes h
+    join public.tarefas t on t.id = h.tarefa_id
+    join public.publicacoes p on p.id = t.publicacao_id
+    where h.id = p_habilitacao_id
+      and p.anunciante_id = (select auth.uid())
+  );
+$;
+revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon;
+grant execute on function private.anunciante_do_chamado_token(uuid) to authenticated;
+
+
 drop policy if exists chamados_token_select_partes_admin on public.chamados_token;
 create policy chamados_token_select_partes_admin on public.chamados_token
 for select to authenticated
@@ -83,27 +103,6 @@ using (
       and p.anunciante_id = (select auth.uid())
   )
 );
-
--- A relacao de propriedade e consultada por helper privado para nao expor
--- validador_id ou outros campos internos da habilitacao ao Anunciante.
-create or replace function private.anunciante_do_chamado_token(p_habilitacao_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public, auth, pg_temp
-as $$
-  select exists (
-    select 1
-    from public.habilitacoes h
-    join public.tarefas t on t.id = h.tarefa_id
-    join public.publicacoes p on p.id = t.publicacao_id
-    where h.id = p_habilitacao_id
-      and p.anunciante_id = (select auth.uid())
-  );
-$$;
-revoke all on function private.anunciante_do_chamado_token(uuid) from public, anon;
-grant execute on function private.anunciante_do_chamado_token(uuid) to authenticated;
 
 drop policy if exists habilitacoes_select_advertiser_owner on public.habilitacoes;
 
