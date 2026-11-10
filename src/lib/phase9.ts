@@ -62,7 +62,9 @@ export function mensagemProgresso(
   if (canal === "site") {
     return creditos.site > 0
       ? `Você tem ${creditos.site} visitas a sites liberadas.`
-      : `Faça mais ${Math.max(10 - instagramValidadas, 0)} tarefas de Instagram para liberar 5 visitas a sites.`;
+      : instagramValidadas < 10
+        ? `Faça mais ${10 - instagramValidadas} tarefas de Instagram para liberar 5 visitas a sites.`
+        : "Nenhuma visita a site liberada no momento.";
   }
   return creditos.youtube > 0
     ? `Você tem ${creditos.youtube} tarefas de YouTube liberadas.`
