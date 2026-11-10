@@ -130,3 +130,28 @@ export function Vazio({ texto }: { texto: string }) {
     </div>
   );
 }
+
+/** Tela de falha das áreas: mostra o aviso em português e um botão para tentar de novo. */
+export function TelaFalha() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 text-center">
+        <div className="flex justify-center">
+          <Logo />
+        </div>
+        <h1 className="mt-4 text-lg font-bold text-foreground">
+          Não foi possível abrir a sua área agora
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Algo falhou ao conferir o seu acesso. Isso costuma passar sozinho — tente de novo.
+        </p>
+        <div className="mt-5 flex flex-col gap-2">
+          <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+          <Button variant="outline" asChild>
+            <Link to="/entrar">Entrar novamente</Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

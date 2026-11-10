@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LayoutMenuAnunciante } from "@/components/AreaLayout";
+import { LayoutMenuAnunciante, TelaFalha } from "@/components/AreaLayout";
 import { exigirPapel } from "@/lib/papel";
 
 export const Route = createFileRoute("/anunciante")({
   ssr: false,
   beforeLoad: () => exigirPapel("anunciante"),
+  errorComponent: TelaFalha,
   head: () => ({ meta: [{ title: "Área do Anunciante — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
   component: () => <LayoutMenuAnunciante titulo="Área do Anunciante" itens={[
     { to: "/anunciante", label: "Início" },
