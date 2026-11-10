@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(17);
 
 select has_table('public','regras_liberacao','regras_liberacao existe');
 select has_table('public','validador_contadores_diarios','contadores diários existem');
