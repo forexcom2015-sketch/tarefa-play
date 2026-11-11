@@ -286,4 +286,4 @@ drop function if exists public.habilitar_tarefa(uuid);
 
 insert into public.configuracoes(chave,valor)
 values ('limite_tarefas_hora_validador','40'),('limite_tarefas_hora_dispositivo','30')
-on conflict (chave) do update set valor=excluded.valor, atualizado_em=now();
+on conflict (chave) do nothing;
