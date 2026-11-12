@@ -85,7 +85,7 @@ alter table public.indicacoes enable row level security;
 drop policy if exists carteiras_select_owner_admin on public.carteiras;
 create policy carteiras_select_owner_admin on public.carteiras
 for select to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists lancamentos_select_owner_admin on public.lancamentos;
 create policy lancamentos_select_owner_admin on public.lancamentos
@@ -93,7 +93,7 @@ for select to authenticated
 using (exists (
   select 1 from public.carteiras c
   where c.id = carteira_id
-    and (c.usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
+    and (c.usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
 ));
 
 drop policy if exists saques_select_owner_admin on public.saques;
@@ -102,14 +102,14 @@ for select to authenticated
 using (exists (
   select 1 from public.carteiras c
   where c.id = carteira_id
-    and (c.usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
+    and (c.usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
 ));
 
 drop policy if exists saques_admin_update on public.saques;
 create policy saques_admin_update on public.saques
 for update to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists niveis_read_active on public.niveis;
 drop policy if exists niveis_anon_read_active on public.niveis;
@@ -117,18 +117,18 @@ drop policy if exists niveis_authenticated_read_active on public.niveis;
 create policy niveis_anon_read_active on public.niveis
 for select to anon using (ativo);
 create policy niveis_authenticated_read_active on public.niveis
-for select to authenticated using (ativo or (select private.has_role('admin'::app_role)));
+for select to authenticated using (ativo or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists niveis_admin_manage on public.niveis;
 create policy niveis_admin_manage on public.niveis
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists indicacoes_select_owner_admin on public.indicacoes;
 create policy indicacoes_select_owner_admin on public.indicacoes
 for select to authenticated
-using (indicador_id = (select auth.uid()) or indicado_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (indicador_id = (select auth.uid()) or indicado_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 revoke all on public.carteiras, public.lancamentos, public.saques, public.niveis, public.indicacoes from anon, authenticated;
 grant select on public.carteiras, public.lancamentos, public.saques, public.niveis, public.indicacoes to authenticated;
@@ -246,7 +246,7 @@ declare
   v_ativo boolean;
   v_id uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem usar o deposito simulado.';
   end if;
   if p_valor is null or p_valor <= 0 or p_valor > 10000 then
@@ -277,7 +277,7 @@ declare
   v_saldo numeric(14,2);
   v_id uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem reservar pacotes.';
   end if;
   if p_valor is null or p_valor <= 0 then
@@ -322,7 +322,7 @@ declare
   v_disponivel_em timestamptz;
 begin
   if coalesce(auth.jwt() ->> 'role', '') <> 'service_role'
-    and (auth.uid() is null or not (select private.has_role('admin'::app_role))) then
+    and (auth.uid() is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role))) then
     raise exception 'Somente o Admin ou o backend autorizado pode confirmar pagamentos internos.';
   end if;
   if p_valor_validador is null or p_valor_validador <= 0 or p_anunciante_id = p_validador_id or p_referencia_id is null then
@@ -396,7 +396,7 @@ declare
   v_lancamento uuid;
   v_saque uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('validador'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores podem solicitar saque.';
   end if;
   if p_valor is null or p_valor <= 0 then raise exception 'Informe um valor valido para saque.'; end if;
@@ -441,7 +441,7 @@ security definer
 set search_path = public, auth, pg_temp
 as $$
 begin
-  if auth.uid() is null or not (select private.has_role('admin'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role)) then
     raise exception 'Somente o Admin pode marcar um saque como pago.';
   end if;
   update public.saques
@@ -512,7 +512,7 @@ declare
   v_bonus numeric(14,2);
 begin
   if coalesce(auth.jwt() ->> 'role', '') <> 'service_role'
-    and (auth.uid() is null or not (select private.has_role('admin'::app_role))) then
+    and (auth.uid() is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role))) then
     raise exception 'Somente o Admin ou o backend autorizado pode autorizar bonus de indicacao.';
   end if;
   if p_indicado_id is null or p_referencia_id is null or p_base_calculo is null or p_base_calculo <= 0 then
