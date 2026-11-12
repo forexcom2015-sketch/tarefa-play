@@ -28,7 +28,7 @@ create policy avaliacoes_select_owner_admin on public.avaliacoes
 for select to authenticated
 using (
   validador_id = (select auth.uid())
-  or (select private.has_role('admin'::app_role))
+  or (select public.has_role(auth.uid(), 'admin'::public.app_role))
 );
 
 revoke all on public.avaliacoes from anon, authenticated;
@@ -73,7 +73,7 @@ declare
   v_handle text;
   v_user_id uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem iniciar validacoes.';
   end if;
 
@@ -239,7 +239,7 @@ security definer
 set search_path = public, auth, pg_temp
 as $$
 begin
-  if auth.uid() is null or not (select private.has_role('validador'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem consultar a avaliacao.';
   end if;
 
@@ -304,7 +304,7 @@ declare
   v_gasto numeric(14,2);
   v_liberar numeric(14,2);
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem concluir avaliacao.';
   end if;
 
@@ -499,7 +499,7 @@ begin
   from public.rodadas_validacao rv
   join public.publicacoes p on p.id = rv.publicacao_id
   where rv.id = p_rodada_id
-    and (p.anunciante_id = auth.uid() or (select private.has_role('admin'::app_role)));
+    and (p.anunciante_id = auth.uid() or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
   if v_rodada.id is null then raise exception 'Rodada nao encontrada.'; end if;
 
