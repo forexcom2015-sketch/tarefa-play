@@ -1,6 +1,10 @@
 -- Fase 5: janela do Validador, feed por interesses e habilitacoes com prazo.
 -- A execucao/verificacao das tarefas permanece desativada nesta fase.
 
+-- O namespace privado e usado pelos helpers SECURITY DEFINER desta fase.
+-- A criacao e idempotente para que o bootstrap local seja reproduzivel.
+create schema if not exists private;
+
 create table if not exists public.canais (
   id uuid primary key default gen_random_uuid(),
   slug text not null unique,
