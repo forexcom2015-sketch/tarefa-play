@@ -33,7 +33,7 @@ declare
   v_token_autorizado boolean := false;
 begin
   if coalesce(auth.jwt() ->> 'role', '') <> 'service_role'
-    and not (auth.uid() is not null and (select private.has_role('admin'::app_role))) then
+    and not (auth.uid() is not null and (select public.has_role(auth.uid(), 'admin'::public.app_role))) then
     select exists (
       select 1
       from public.tokens_tarefa tok

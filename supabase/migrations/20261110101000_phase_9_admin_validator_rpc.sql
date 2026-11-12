@@ -6,7 +6,7 @@ security definer
 set search_path = ''
 as $function$
 begin
-  if (select auth.uid()) is null or not (select private.has_role('admin'::app_role)) then
+  if (select auth.uid()) is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role)) then
     raise exception 'Somente Admin pode consultar os dados da Fase 9.';
   end if;
 
@@ -20,7 +20,7 @@ begin
         'quantidade_liberada', r.quantidade_liberada,
         'ciclica', r.ciclica,
         'ativo', r.ativo
-      ) order by co.nome, o.nome), '[]'::jsonb)
+      ) order by co.nome, o.nome)
       from public.regras_liberacao r
       join public.tipos_tarefa o on o.id=r.tipo_origem_id
       join public.canais co on co.id=o.canal_id
@@ -57,7 +57,7 @@ set search_path = ''
 as $function$
 declare v_user uuid := (select auth.uid());
 begin
-  if v_user is null or not (select private.has_role('validador'::app_role)) then
+  if v_user is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores podem consultar seu bloqueio.';
   end if;
   return coalesce((

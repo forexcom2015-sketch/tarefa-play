@@ -6,4 +6,4 @@ create policy "config admin select"
 on public.configuracoes
 for select
 to authenticated
-using ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)));

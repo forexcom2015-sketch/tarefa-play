@@ -83,7 +83,7 @@ drop policy if exists chamados_token_select_partes_admin on public.chamados_toke
 create policy chamados_token_select_partes_admin on public.chamados_token
 for select to authenticated
 using (
-  (select private.has_role('admin'::app_role))
+  (select public.has_role(auth.uid(), 'admin'::public.app_role))
   or exists (
     select 1
     from public.habilitacoes h
@@ -149,7 +149,7 @@ declare
   v_custo_unitario numeric(14,2);
   v_total_reservado numeric(14,2);
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem criar tarefas reais.';
   end if;
   if p_vagas is null or p_vagas < 1 or p_vagas > 10000 then
@@ -225,7 +225,7 @@ security definer
 set search_path = public, auth, pg_temp
 as $$
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Acesso restrito ao Anunciante.';
   end if;
   if not exists (
@@ -270,7 +270,7 @@ security definer
 set search_path = public, auth, pg_temp
 as $$
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Acesso restrito ao Anunciante.';
   end if;
   return query
@@ -303,7 +303,7 @@ declare
   v_codigo text;
   v_expira timestamptz;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Acesso restrito ao Anunciante.';
   end if;
 
@@ -375,7 +375,7 @@ security definer
 set search_path = public, auth, pg_temp
 as $$
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Acesso restrito ao Anunciante.';
   end if;
   update public.tarefas t
@@ -418,7 +418,7 @@ declare
   v_token_autorizado boolean := false;
 begin
   if coalesce(auth.jwt() ->> 'role', '') <> 'service_role'
-    and not (auth.uid() is not null and (select private.has_role('admin'::app_role))) then
+    and not (auth.uid() is not null and (select public.has_role(auth.uid(), 'admin'::public.app_role))) then
     select exists (
       select 1
       from public.tokens_tarefa tok
@@ -523,7 +523,7 @@ declare
   v_hash text;
   v_pagamento numeric(14,2);
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem validar tokens.';
   end if;
   if p_codigo is null or length(trim(p_codigo)) < 16 or length(trim(p_codigo)) > 128 then
@@ -635,7 +635,7 @@ declare
   v_habilitacao public.habilitacoes;
   v_id uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('validador'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores podem abrir chamados.';
   end if;
   if p_motivo is null or length(trim(p_motivo)) < 10 or length(trim(p_motivo)) > 1000
@@ -698,9 +698,9 @@ declare
 begin
   if auth.uid() is not null
     and not (
-      (select private.has_role('admin'::app_role))
-      or (select private.has_role('anunciante'::app_role))
-      or (select private.has_role('validador'::app_role))
+      (select public.has_role(auth.uid(), 'admin'::public.app_role))
+      or (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
+      or (select public.has_role(auth.uid(), 'validador'::public.app_role))
     ) then
     raise exception 'Acesso restrito.';
   end if;
@@ -729,7 +729,7 @@ security definer
 set search_path = public, auth, pg_temp
 as $$
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente o Anunciante pode responder nesta etapa.';
   end if;
   if p_resposta is null or length(trim(p_resposta)) < 5 or length(trim(p_resposta)) > 1000 then
@@ -774,7 +774,7 @@ declare
   v_publicacao public.publicacoes;
   v_tipo public.tipos_tarefa;
 begin
-  if auth.uid() is null or not (select private.has_role('admin'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role)) then
     raise exception 'Somente o suporte Admin pode decidir este chamado.';
   end if;
   if p_decisao not in ('pagar','indeferir')
@@ -868,7 +868,7 @@ declare
   v_habilitacao_id uuid;
   v_prazo integer;
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem se habilitar.';
   end if;
   perform private.expirar_habilitacoes_validador();

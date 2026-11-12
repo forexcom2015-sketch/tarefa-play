@@ -25,3 +25,28 @@ jobs:
       - name: Lint informativo
         continue-on-error: true
         run: bun run lint
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Iniciar Supabase local
+        run: supabase start
+      - name: Recriar banco local e aplicar todas as migrations
+        run: supabase db reset --local
+      - name: Executar cenários Fase 9
+        shell: bash
+        run: |
+          set -o pipefail
+          output="$(supabase test db supabase/tests/phase9_scenarios_rollback.sql 2>&1)" || {
+            echo "$output"
+            exit 1
+          }
+          echo "$output"
+          if echo "$output" | grep -E '\(FALHA\)|ERRO|SETUP:'; then
+            exit 1
+          fi
