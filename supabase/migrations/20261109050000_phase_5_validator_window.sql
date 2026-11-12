@@ -72,33 +72,33 @@ alter table public.habilitacoes enable row level security;
 drop policy if exists canais_select_authenticated on public.canais;
 create policy canais_select_authenticated on public.canais
 for select to authenticated
-using (ativo or (select private.has_role('admin'::app_role)));
+using (ativo or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists canais_admin_manage on public.canais;
 create policy canais_admin_manage on public.canais
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists tipos_tarefa_select_authenticated on public.tipos_tarefa;
 create policy tipos_tarefa_select_authenticated on public.tipos_tarefa
 for select to authenticated
-using (ativo or (select private.has_role('admin'::app_role)));
+using (ativo or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists tipos_tarefa_admin_manage on public.tipos_tarefa;
 create policy tipos_tarefa_admin_manage on public.tipos_tarefa
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists tarefas_select_validator_interests_admin on public.tarefas;
 create policy tarefas_select_validator_interests_admin on public.tarefas
 for select to authenticated
 using (
-  (select private.has_role('admin'::app_role))
+  (select public.has_role(auth.uid(), 'admin'::public.app_role))
   or (
     status = 'ativa'
-    and (select private.has_role('validador'::app_role))
+    and (select public.has_role(auth.uid(), 'validador'::public.app_role))
     and exists (
       select 1 from public.tipos_tarefa tt
       join public.canais ch on ch.id = tt.canal_id
@@ -141,13 +141,13 @@ using (
 drop policy if exists tarefas_admin_manage on public.tarefas;
 create policy tarefas_admin_manage on public.tarefas
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists habilitacoes_select_owner_admin on public.habilitacoes;
 create policy habilitacoes_select_owner_admin on public.habilitacoes
 for select to authenticated
-using (validador_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (validador_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 revoke all on public.canais, public.tipos_tarefa, public.tarefas, public.habilitacoes from anon, authenticated;
 grant select on public.canais, public.tipos_tarefa, public.tarefas, public.habilitacoes to authenticated;
@@ -241,8 +241,8 @@ as $$
 begin
   if auth.uid() is null
     or not (
-      (select private.has_role('validador'::app_role))
-      or (select private.has_role('admin'::app_role))
+      (select public.has_role(auth.uid(), 'validador'::public.app_role))
+      or (select public.has_role(auth.uid(), 'admin'::public.app_role))
     ) then
     raise exception 'Acesso restrito a Validadores e Admin.';
   end if;
@@ -266,7 +266,7 @@ declare
   v_habilitacao_id uuid;
   v_prazo integer;
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem se habilitar.';
   end if;
 
@@ -366,7 +366,7 @@ declare
   v_user_id uuid := auth.uid();
   v_tarefa_id uuid;
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem desistir.';
   end if;
 
@@ -411,7 +411,7 @@ declare
   v_user_id uuid := auth.uid();
   v_quantidade integer;
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem editar interesses.';
   end if;
 
