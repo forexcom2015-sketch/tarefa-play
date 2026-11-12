@@ -151,14 +151,14 @@ alter table public.contas_sociais enable row level security;
 
 create policy "aceites_contrato_select_owner_admin" on public.aceites_contrato
 for select to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 create policy "aceites_contrato_insert_owner" on public.aceites_contrato
 for insert to authenticated
 with check (usuario_id = (select auth.uid()));
 
 create policy "documentos_usuarios_select_owner_admin" on public.documentos_usuarios
 for select to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 create policy "documentos_usuarios_insert_owner" on public.documentos_usuarios
 for insert to authenticated
 with check (usuario_id = (select auth.uid()));
@@ -169,27 +169,27 @@ with check (usuario_id = (select auth.uid()));
 
 create policy "cadastro_validadores_owner_admin" on public.cadastro_validadores
 for all to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
-with check (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 create policy "cadastro_anunciantes_owner_admin" on public.cadastro_anunciantes
 for all to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
-with check (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 create policy "interesses_validador_owner_admin" on public.interesses_validador
 for all to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
-with check (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 create policy "contas_pix_owner_admin" on public.contas_pix
 for all to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
-with check (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 create policy "contas_sociais_select_owner_admin" on public.contas_sociais
 for select to authenticated
-using (usuario_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (usuario_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 create policy "contas_sociais_insert_owner_pending" on public.contas_sociais
 for insert to authenticated
 with check (usuario_id = (select auth.uid()) and status = 'pendente');
@@ -199,8 +199,8 @@ using (usuario_id = (select auth.uid()) and status = 'pendente')
 with check (usuario_id = (select auth.uid()) and status = 'pendente');
 create policy "contas_sociais_admin_update" on public.contas_sociais
 for update to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 grant select, insert, update on public.aceites_contrato to authenticated;
 grant select, insert, update on public.documentos_usuarios to authenticated;
@@ -221,5 +221,5 @@ create policy "instagram_read_owner_admin" on storage.objects
 for select to authenticated
 using (bucket_id = 'verificacoes-instagram' and (
   (storage.foldername(name))[1] = (select auth.uid())::text
-  or (select private.has_role('admin'::app_role))
+  or (select public.has_role(auth.uid(), 'admin'::public.app_role))
 ));
