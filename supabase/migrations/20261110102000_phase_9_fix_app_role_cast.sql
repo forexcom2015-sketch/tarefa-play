@@ -11,13 +11,14 @@ begin
         'obter_bloqueio_validador_fase9','obter_status_liberacao_fase9'
       )
       and p.prosrc like '%::app_role%'
+      and p.prosrc not like '%::public.app_role%'
   loop
     v_def := replace(pg_get_functiondef(r.oid), '::app_role', '::public.app_role');
     execute v_def;
     v_n := v_n + 1;
   end loop;
-  if v_n <> 7 then
-    raise exception 'Esperado corrigir 7 funções, corrigidas: %', v_n;
+  if v_n > 7 then
+    raise exception 'Correcoes inesperadas: %', v_n;
   end if;
 end
 $fix$;
