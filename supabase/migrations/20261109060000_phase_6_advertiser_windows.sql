@@ -88,25 +88,25 @@ alter table public.rodadas_validacao enable row level security;
 drop policy if exists restricoes_select_authenticated on public.restricoes;
 create policy restricoes_select_authenticated on public.restricoes
 for select to authenticated
-using (ativa or (select private.has_role('admin'::app_role)));
+using (ativa or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists restricoes_admin_manage on public.restricoes;
 create policy restricoes_admin_manage on public.restricoes
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists publicacoes_select_owner_admin on public.publicacoes;
 create policy publicacoes_select_owner_admin on public.publicacoes
 for select to authenticated
-using (anunciante_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (anunciante_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists publicacoes_insert_anunciante on public.publicacoes;
 create policy publicacoes_insert_anunciante on public.publicacoes
 for insert to authenticated
 with check (
   anunciante_id = (select auth.uid())
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
   and status = 'rascunho'
 );
 
@@ -115,20 +115,20 @@ create policy publicacoes_update_own_draft on public.publicacoes
 for update to authenticated
 using (
   anunciante_id = (select auth.uid())
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
   and status = 'rascunho'
 )
 with check (
   anunciante_id = (select auth.uid())
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
   and status = 'rascunho'
 );
 
 drop policy if exists publicacoes_admin_manage on public.publicacoes;
 create policy publicacoes_admin_manage on public.publicacoes
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists rodadas_validacao_select_owner_admin on public.rodadas_validacao;
 create policy rodadas_validacao_select_owner_admin on public.rodadas_validacao
@@ -137,7 +137,7 @@ using (
   exists (
     select 1 from public.publicacoes p
     where p.id = rodadas_validacao.publicacao_id
-      and (p.anunciante_id = (select auth.uid()) or (select private.has_role('admin'::app_role)))
+      and (p.anunciante_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)))
   )
 );
 
@@ -165,7 +165,7 @@ for insert to authenticated
 with check (
   bucket_id = 'criativos-publicacoes'
   and (storage.foldername(name))[1] = (select auth.uid())::text
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
 );
 
 drop policy if exists criativos_owner_update on storage.objects;
@@ -174,12 +174,12 @@ for update to authenticated
 using (
   bucket_id = 'criativos-publicacoes'
   and (storage.foldername(name))[1] = (select auth.uid())::text
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
 )
 with check (
   bucket_id = 'criativos-publicacoes'
   and (storage.foldername(name))[1] = (select auth.uid())::text
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
 );
 
 drop policy if exists criativos_owner_delete on storage.objects;
@@ -188,7 +188,7 @@ for delete to authenticated
 using (
   bucket_id = 'criativos-publicacoes'
   and (storage.foldername(name))[1] = (select auth.uid())::text
-  and (select private.has_role('anunciante'::app_role))
+  and (select public.has_role(auth.uid(), 'anunciante'::public.app_role))
 );
 
 -- A regra de restricoes tambem e aplicada no banco: a interface nao e a fronteira de seguranca.
@@ -203,13 +203,13 @@ declare
   v_ativa boolean;
   v_exige_revisao boolean;
 begin
-  if (select private.has_role('admin'::app_role)) then
+  if (select public.has_role(auth.uid(), 'admin'::public.app_role)) then
     return new;
   end if;
 
   if auth.uid() is null
     or new.anunciante_id <> auth.uid()
-    or not (select private.has_role('anunciante'::app_role)) then
+    or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente o Anunciante titular pode salvar esta publicacao.';
   end if;
 
@@ -269,7 +269,7 @@ as $$
 declare
   v_total integer;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem consultar esta estimativa.';
   end if;
 
@@ -303,7 +303,7 @@ as $$
 declare
   v_valor numeric(14,2);
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem consultar o pacote minimo.';
   end if;
   select greatest(coalesce(valor::numeric, 100), 0.01) into v_valor
@@ -323,7 +323,7 @@ declare
   v_origem public.publicacoes;
   v_nova_id uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem duplicar publicacoes.';
   end if;
 
@@ -366,7 +366,7 @@ declare
   v_estimativa integer;
   v_rodada_id uuid;
 begin
-  if auth.uid() is null or not (select private.has_role('anunciante'::app_role)) then
+  if auth.uid() is null or not (select public.has_role(auth.uid(), 'anunciante'::public.app_role)) then
     raise exception 'Somente Anunciantes autenticados podem iniciar validacoes.';
   end if;
 
