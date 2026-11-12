@@ -1,25 +1,33 @@
 begin;
 
-do $test$
-declare
-  v_count integer;
-  v_def text;
-begin
-  select count(*) into v_count from information_schema.tables
-  where table_schema='public' and table_name in ('regras_liberacao','validador_contadores_diarios','habilitacoes_contabilizadas','bloqueios','contestacoes_bloqueio');
-  if v_count <> 5 then raise exception 'FALHA: tabelas Fase 9 incompletas (%)',v_count; end if;
+select plan(11);
 
-  if not exists (
-    select 1 from information_schema.columns
-    where table_schema='public' and table_name='bloqueios' and column_name='dia_referencia'
-  ) then raise exception 'FALHA: bloqueios.dia_referencia ausente'; end if;
+select is(
+  (select count(*)::integer from information_schema.tables
+   where table_schema='public' and table_name in (
+     'regras_liberacao','validador_contadores_diarios',
+     'habilitacoes_contabilizadas','bloqueios','contestacoes_bloqueio'
+   )),
+  5,
+  'tabelas da Fase 9 existem'
+);
 
-  if not exists (
-    select 1 from pg_indexes
-    where schemaname='public' and indexname='bloqueios_minimo_diario_validador_dia_uidx'
-  ) then raise exception 'FALHA: índice único diário ausente'; end if;
+select ok(
+  exists (select 1 from information_schema.columns
+          where table_schema='public' and table_name='bloqueios'
+            and column_name='dia_referencia'),
+  'bloqueios.dia_referencia existe'
+);
 
-  if not exists (
+select ok(
+  exists (select 1 from pg_indexes
+          where schemaname='public'
+            and indexname='bloqueios_minimo_diario_validador_dia_uidx'),
+  'indice unico de bloqueio diario existe'
+);
+
+select ok(
+  exists (
     select 1 from public.regras_liberacao r
     join public.tipos_tarefa o on o.id=r.tipo_origem_id
     join public.canais co on co.id=o.canal_id
@@ -27,9 +35,12 @@ begin
     join public.canais cd on cd.id=d.canal_id
     where r.ativo and r.quantidade_requisito=10 and r.quantidade_liberada=5
       and co.slug='instagram' and cd.slug='site'
-  ) then raise exception 'FALHA: seed Instagram 10 -> Site 5 ausente'; end if;
+  ),
+  'regra Instagram 10 para Site 5 esta configurada'
+);
 
-  if not exists (
+select ok(
+  exists (
     select 1 from public.regras_liberacao r
     join public.tipos_tarefa o on o.id=r.tipo_origem_id
     join public.canais co on co.id=o.canal_id
@@ -37,30 +48,55 @@ begin
     join public.canais cd on cd.id=d.canal_id
     where r.ativo and r.quantidade_requisito=5 and r.quantidade_liberada=2
       and co.slug='site' and cd.slug='youtube'
-  ) then raise exception 'FALHA: seed Site 5 -> YouTube 2 ausente'; end if;
+  ),
+  'regra Site 5 para YouTube 2 esta configurada'
+);
 
-  v_def := pg_get_functiondef('public.habilitar_tarefa(uuid,text)'::regprocedure);
-  if position('regras_liberacao' in v_def)=0 then raise exception 'FALHA: habilitar_tarefa não lê regras_liberacao'; end if;
-  if position('::public.app_role' in v_def)=0 then raise exception 'FALHA: habilitar_tarefa usa cast app_role não qualificado'; end if;
-  if position('limite_velocidade_excedido' in v_def)>0 then raise exception 'FALHA: auditoria de velocidade morta permanece'; end if;
+select ok(
+  position('regras_liberacao' in pg_get_functiondef('public.habilitar_tarefa(uuid,text)'::regprocedure)) > 0
+  and position('::public.app_role' in pg_get_functiondef('public.habilitar_tarefa(uuid,text)'::regprocedure)) > 0
+  and position('limite_velocidade_excedido' in pg_get_functiondef('public.habilitar_tarefa(uuid,text)'::regprocedure)) = 0,
+  'habilitar_tarefa usa regras, cast qualificado e sem auditoria morta'
+);
 
-  v_def := pg_get_functiondef('public.obter_status_liberacao_fase9()'::regprocedure);
-  if position('regras_liberacao' in v_def)=0 then raise exception 'FALHA: status de liberação não lê regras'; end if;
+select ok(
+  position('regras_liberacao' in pg_get_functiondef('public.obter_status_liberacao_fase9()'::regprocedure)) > 0,
+  'status de liberacao consulta regras configuraveis'
+);
 
-  v_def := pg_get_functiondef('public.registrar_habilitacao_validada_fase9()'::regprocedure);
-  if position('regras_liberacao' in v_def)=0 then raise exception 'FALHA: contador não lê regras'; end if;
+select ok(
+  position('regras_liberacao' in pg_get_functiondef('public.registrar_habilitacao_validada_fase9()'::regprocedure)) > 0,
+  'contador de habilitacoes consulta regras configuraveis'
+);
 
-  v_def := pg_get_functiondef('public.processar_bloqueios_diarios()'::regprocedure);
-  if position('dia_referencia' in v_def)=0 then raise exception 'FALHA: rotina diária não usa dia_referencia'; end if;
+select ok(
+  position('dia_referencia' in pg_get_functiondef('public.processar_bloqueios_diarios()'::regprocedure)) > 0,
+  'rotina diaria usa dia_referencia'
+);
 
-  if exists (
+select ok(
+  not exists (
     select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
     where n.nspname='public' and p.proname='habilitar_tarefa'
       and pg_get_function_identity_arguments(p.oid)='uuid'
-  ) then raise exception 'FALHA: assinatura antiga habilitar_tarefa(uuid) permanece'; end if;
+  ),
+  'assinatura antiga habilitar_tarefa(uuid) nao existe'
+);
 
-  raise notice 'Fase 9 database smoke tests: OK';
-end
-$test$;
+select ok(
+  (select count(*) = 7
+   from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public'
+     and p.proname in (
+       'habilitar_tarefa','contestar_bloqueio','decidir_contestacao_bloqueio',
+       'salvar_regra_liberacao','obter_dados_admin_fase9',
+       'obter_bloqueio_validador_fase9','obter_status_liberacao_fase9'
+     )
+     and p.prosrc like '%::public.app_role%'
+     and p.prosrc not like '%::app_role%'),
+  'as sete RPCs usam app_role qualificado'
+);
+
+select * from finish();
 
 rollback;
