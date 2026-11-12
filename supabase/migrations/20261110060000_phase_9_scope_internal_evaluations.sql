@@ -38,7 +38,7 @@ declare
   v_gasto numeric(14,2);
   v_liberar numeric(14,2);
 begin
-  if v_user_id is null or not (select private.has_role('validador'::app_role)) then
+  if v_user_id is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem concluir avaliacao.';
   end if;
 
