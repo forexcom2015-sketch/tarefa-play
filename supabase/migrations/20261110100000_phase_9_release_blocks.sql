@@ -91,28 +91,28 @@ grant select on public.regras_liberacao, public.validador_contadores_diarios,
 drop policy if exists regras_liberacao_select_authenticated on public.regras_liberacao;
 create policy regras_liberacao_select_authenticated on public.regras_liberacao
 for select to authenticated
-using (ativo or (select private.has_role('admin'::app_role)));
+using (ativo or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists regras_liberacao_admin_manage on public.regras_liberacao;
 create policy regras_liberacao_admin_manage on public.regras_liberacao
 for all to authenticated
-using ((select private.has_role('admin'::app_role)))
-with check ((select private.has_role('admin'::app_role)));
+using ((select public.has_role(auth.uid(), 'admin'::public.app_role)))
+with check ((select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists validador_contadores_diarios_select_owner_admin on public.validador_contadores_diarios;
 create policy validador_contadores_diarios_select_owner_admin on public.validador_contadores_diarios
 for select to authenticated
-using (validador_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (validador_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists bloqueios_select_owner_admin on public.bloqueios;
 create policy bloqueios_select_owner_admin on public.bloqueios
 for select to authenticated
-using (validador_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (validador_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 drop policy if exists contestacoes_select_owner_admin on public.contestacoes_bloqueio;
 create policy contestacoes_select_owner_admin on public.contestacoes_bloqueio
 for select to authenticated
-using (validador_id = (select auth.uid()) or (select private.has_role('admin'::app_role)));
+using (validador_id = (select auth.uid()) or (select public.has_role(auth.uid(), 'admin'::public.app_role)));
 
 insert into public.regras_liberacao
   (tipo_origem_id, quantidade_requisito, tipo_destino_id, quantidade_liberada, ciclica, ativo)
@@ -212,7 +212,7 @@ declare
   v_i integer := 0; v_s integer := 0; v_y integer := 0;
   v_ciclica boolean := true;
 begin
-  if v_user is null or not (select private.has_role('validador'::app_role)) then
+  if v_user is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then
     raise exception 'Somente Validadores autenticados podem consultar a liberação.';
   end if;
   select coalesce(c.valor::boolean,true) into v_ciclica from public.configuracoes c where c.chave='liberacao_ciclica';
@@ -263,7 +263,7 @@ declare
   v_credit_y integer;
   v_ciclica boolean := true;
 begin
-  if v_user is null or not (select private.has_role('validador'::app_role)) then raise exception 'Somente Validadores autenticados podem se habilitar.'; end if;
+  if v_user is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then raise exception 'Somente Validadores autenticados podem se habilitar.'; end if;
   if p_dispositivo_id is null or length(trim(p_dispositivo_id)) < 8 or length(trim(p_dispositivo_id)) > 128 then raise exception 'Identificador de dispositivo inválido.'; end if;
 
   select b.fim into v_bloqueio_fim from public.bloqueios b
@@ -411,7 +411,7 @@ returns uuid language plpgsql security definer set search_path=''
 as $function$
 declare v_user uuid:=(select auth.uid()); v_fim timestamptz; v_id uuid;
 begin
-  if v_user is null or not (select private.has_role('validador'::app_role)) then raise exception 'Somente Validadores podem contestar bloqueios.'; end if;
+  if v_user is null or not (select public.has_role(auth.uid(), 'validador'::public.app_role)) then raise exception 'Somente Validadores podem contestar bloqueios.'; end if;
   if p_texto is null or length(trim(p_texto)) not between 10 and 2000 then raise exception 'A contestação deve ter entre 10 e 2000 caracteres.'; end if;
   select fim into v_fim from public.bloqueios where id=p_bloqueio_id and validador_id=v_user and status in ('ativo','contestado');
   if v_fim is null or v_fim<=now() then raise exception 'Bloqueio não encontrado ou já encerrado.'; end if;
@@ -430,7 +430,7 @@ returns void language plpgsql security definer set search_path=''
 as $function$
 declare v_user uuid:=(select auth.uid()); v_bloqueio uuid; v_status text;
 begin
-  if v_user is null or not (select private.has_role('admin'::app_role)) then raise exception 'Somente Admin pode decidir contestações.'; end if;
+  if v_user is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role)) then raise exception 'Somente Admin pode decidir contestações.'; end if;
   if p_decisao not in ('aceita','negada') then raise exception 'Decisão inválida.'; end if;
   select bloqueio_id,status into v_bloqueio,v_status from public.contestacoes_bloqueio where id=p_contestacao_id for update;
   if v_bloqueio is null then raise exception 'Contestação não encontrada.'; end if;
@@ -453,7 +453,7 @@ returns uuid language plpgsql security definer set search_path=''
 as $function$
 declare v_user uuid:=(select auth.uid()); v_id uuid;
 begin
-  if v_user is null or not (select private.has_role('admin'::app_role)) then raise exception 'Somente Admin pode editar regras de liberação.'; end if;
+  if v_user is null or not (select public.has_role(auth.uid(), 'admin'::public.app_role)) then raise exception 'Somente Admin pode editar regras de liberação.'; end if;
   if p_quantidade_requisito<1 or p_quantidade_liberada<1 then raise exception 'As quantidades devem ser maiores que zero.'; end if;
   if p_id is null then
     insert into public.regras_liberacao(tipo_origem_id,quantidade_requisito,tipo_destino_id,quantidade_liberada,ciclica,ativo)
