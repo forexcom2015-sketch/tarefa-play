@@ -1,5 +1,6 @@
 # Auditoria completa
 
+- [ ] Testar login, cadastro, atividades do validador e atividades do anunciante com contas de teste.
 - [ ] Mapear regras do produto, rotas, banco e fluxos publicados sem regredir funcionalidades.
 - [ ] Revisar segurança, permissões, armazenamento e dependências; corrigir achados confirmados.
 - [ ] Revisar regras financeiras, validação de tarefas, idempotência e proteções contra fraude.
