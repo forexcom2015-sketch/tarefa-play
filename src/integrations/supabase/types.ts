@@ -115,6 +115,48 @@ export type Database = {
           },
         ]
       }
+      bloqueios: {
+        Row: {
+          atualizado_em: string
+          contestado: boolean
+          criado_em: string
+          dia_referencia: string | null
+          fim: string
+          id: string
+          inicio: string
+          motivo: string
+          origem: string
+          status: string
+          validador_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          contestado?: boolean
+          criado_em?: string
+          dia_referencia?: string | null
+          fim: string
+          id?: string
+          inicio?: string
+          motivo: string
+          origem?: string
+          status?: string
+          validador_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          contestado?: boolean
+          criado_em?: string
+          dia_referencia?: string | null
+          fim?: string
+          id?: string
+          inicio?: string
+          motivo?: string
+          origem?: string
+          status?: string
+          validador_id?: string
+        }
+        Relationships: []
+      }
       cadastro_anunciantes: {
         Row: {
           atualizado_em: string
@@ -235,6 +277,59 @@ export type Database = {
         }
         Relationships: []
       }
+      chamados_token: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          decisao_suporte: string | null
+          evidencia: string | null
+          habilitacao_id: string
+          id: string
+          link_comentario: string
+          motivo: string
+          prazo: string
+          responsavel: string | null
+          resposta_anunciante: string | null
+          status: string
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          decisao_suporte?: string | null
+          evidencia?: string | null
+          habilitacao_id: string
+          id?: string
+          link_comentario: string
+          motivo: string
+          prazo: string
+          responsavel?: string | null
+          resposta_anunciante?: string | null
+          status?: string
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          decisao_suporte?: string | null
+          evidencia?: string | null
+          habilitacao_id?: string
+          id?: string
+          link_comentario?: string
+          motivo?: string
+          prazo?: string
+          responsavel?: string | null
+          resposta_anunciante?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamados_token_habilitacao_id_fkey"
+            columns: ["habilitacao_id"]
+            isOneToOne: false
+            referencedRelation: "habilitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracoes: {
         Row: {
           atualizado_em: string
@@ -328,6 +423,50 @@ export type Database = {
         }
         Relationships: []
       }
+      contestacoes_bloqueio: {
+        Row: {
+          atualizado_em: string
+          bloqueio_id: string
+          criado_em: string
+          decidido_em: string | null
+          decisor: string | null
+          id: string
+          status: string
+          texto: string
+          validador_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          bloqueio_id: string
+          criado_em?: string
+          decidido_em?: string | null
+          decisor?: string | null
+          id?: string
+          status?: string
+          texto: string
+          validador_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          bloqueio_id?: string
+          criado_em?: string
+          decidido_em?: string | null
+          decisor?: string | null
+          id?: string
+          status?: string
+          texto?: string
+          validador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contestacoes_bloqueio_bloqueio_id_fkey"
+            columns: ["bloqueio_id"]
+            isOneToOne: true
+            referencedRelation: "bloqueios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_usuarios: {
         Row: {
           criado_em: string
@@ -356,6 +495,7 @@ export type Database = {
         Row: {
           atualizado_em: string
           criado_em: string
+          dispositivo_id: string | null
           expira_em: string
           handle: string
           id: string
@@ -367,6 +507,7 @@ export type Database = {
         Insert: {
           atualizado_em?: string
           criado_em?: string
+          dispositivo_id?: string | null
           expira_em: string
           handle: string
           id?: string
@@ -378,6 +519,7 @@ export type Database = {
         Update: {
           atualizado_em?: string
           criado_em?: string
+          dispositivo_id?: string | null
           expira_em?: string
           handle?: string
           id?: string
@@ -392,6 +534,45 @@ export type Database = {
             columns: ["tarefa_id"]
             isOneToOne: false
             referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habilitacoes_contabilizadas: {
+        Row: {
+          canal_id: string
+          contabilizada_em: string
+          dia: string
+          habilitacao_id: string
+          validador_id: string
+        }
+        Insert: {
+          canal_id: string
+          contabilizada_em?: string
+          dia: string
+          habilitacao_id: string
+          validador_id: string
+        }
+        Update: {
+          canal_id?: string
+          contabilizada_em?: string
+          dia?: string
+          habilitacao_id?: string
+          validador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habilitacoes_contabilizadas_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "habilitacoes_contabilizadas_habilitacao_id_fkey"
+            columns: ["habilitacao_id"]
+            isOneToOne: true
+            referencedRelation: "habilitacoes"
             referencedColumns: ["id"]
           },
         ]
@@ -640,6 +821,57 @@ export type Database = {
           },
         ]
       }
+      regras_liberacao: {
+        Row: {
+          ativo: boolean
+          atualizado_em: string
+          ciclica: boolean
+          criado_em: string
+          id: string
+          quantidade_liberada: number
+          quantidade_requisito: number
+          tipo_destino_id: string
+          tipo_origem_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          atualizado_em?: string
+          ciclica?: boolean
+          criado_em?: string
+          id?: string
+          quantidade_liberada: number
+          quantidade_requisito: number
+          tipo_destino_id: string
+          tipo_origem_id: string
+        }
+        Update: {
+          ativo?: boolean
+          atualizado_em?: string
+          ciclica?: boolean
+          criado_em?: string
+          id?: string
+          quantidade_liberada?: number
+          quantidade_requisito?: number
+          tipo_destino_id?: string
+          tipo_origem_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regras_liberacao_tipo_destino_id_fkey"
+            columns: ["tipo_destino_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_tarefa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regras_liberacao_tipo_origem_id_fkey"
+            columns: ["tipo_origem_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_tarefa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restricoes: {
         Row: {
           ativa: boolean
@@ -792,8 +1024,11 @@ export type Database = {
           status: string
           tempo_estimado_minutos: number
           tipo_tarefa_id: string
+          tokens_exportados_em: string | null
           vagas: number
+          vagas_concluidas: number
           vagas_ocupadas: number
+          valor_reservado: number
         }
         Insert: {
           atualizado_em?: string
@@ -806,8 +1041,11 @@ export type Database = {
           status?: string
           tempo_estimado_minutos?: number
           tipo_tarefa_id: string
+          tokens_exportados_em?: string | null
           vagas: number
+          vagas_concluidas?: number
           vagas_ocupadas?: number
+          valor_reservado?: number
         }
         Update: {
           atualizado_em?: string
@@ -820,8 +1058,11 @@ export type Database = {
           status?: string
           tempo_estimado_minutos?: number
           tipo_tarefa_id?: string
+          tokens_exportados_em?: string | null
           vagas?: number
+          vagas_concluidas?: number
           vagas_ocupadas?: number
+          valor_reservado?: number
         }
         Relationships: [
           {
@@ -891,6 +1132,53 @@ export type Database = {
           },
         ]
       }
+      tokens_tarefa: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          expira_em: string
+          habilitacao_id: string
+          hash: string
+          id: string
+          limite_tentativas: number
+          status: string
+          tentativas: number
+          usado_em: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          expira_em: string
+          habilitacao_id: string
+          hash: string
+          id?: string
+          limite_tentativas?: number
+          status?: string
+          tentativas?: number
+          usado_em?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          expira_em?: string
+          habilitacao_id?: string
+          hash?: string
+          id?: string
+          limite_tentativas?: number
+          status?: string
+          tentativas?: number
+          usado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tokens_tarefa_habilitacao_id_fkey"
+            columns: ["habilitacao_id"]
+            isOneToOne: false
+            referencedRelation: "habilitacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -908,6 +1196,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      validador_contadores_diarios: {
+        Row: {
+          atualizado_em: string
+          canal_id: string
+          creditos_consumidos: number
+          creditos_liberados: number
+          criado_em: string
+          dia: string
+          id: string
+          tarefas_concluidas: number
+          validador_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          canal_id: string
+          creditos_consumidos?: number
+          creditos_liberados?: number
+          criado_em?: string
+          dia: string
+          id?: string
+          tarefas_concluidas?: number
+          validador_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          canal_id?: string
+          creditos_consumidos?: number
+          creditos_liberados?: number
+          criado_em?: string
+          dia?: string
+          id?: string
+          tarefas_concluidas?: number
+          validador_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validador_contadores_diarios_canal_id_fkey"
+            columns: ["canal_id"]
+            isOneToOne: false
+            referencedRelation: "canais"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -937,6 +1269,15 @@ export type Database = {
       }
     }
     Functions: {
+      abrir_chamado_token: {
+        Args: {
+          p_evidencia?: string
+          p_habilitacao_id: string
+          p_link_comentario: string
+          p_motivo: string
+        }
+        Returns: string
+      }
       atualizar_interesses_validador: {
         Args: { p_categoria_ids: string[] }
         Returns: number
@@ -954,6 +1295,10 @@ export type Database = {
         }
         Returns: string
       }
+      contestar_bloqueio: {
+        Args: { p_bloqueio_id: string; p_texto: string }
+        Returns: string
+      }
       creditar_bonus_indicacao: {
         Args: {
           p_base_calculo: number
@@ -961,6 +1306,19 @@ export type Database = {
           p_referencia_id: string
         }
         Returns: number
+      }
+      criar_tarefa_real: {
+        Args: {
+          p_link_publicacao: string
+          p_publicacao_id: string
+          p_tipo_tarefa_id: string
+          p_vagas: number
+        }
+        Returns: string
+      }
+      decidir_contestacao_bloqueio: {
+        Args: { p_contestacao_id: string; p_decisao: string }
+        Returns: undefined
       }
       depositar_mock: { Args: { p_valor: number }; Returns: string }
       desistir_habilitacao: {
@@ -975,7 +1333,19 @@ export type Database = {
         Args: { p_categoria_id: string }
         Returns: number
       }
-      habilitar_tarefa: { Args: { p_tarefa_id: string }; Returns: string }
+      gerar_tokens_tarefa: {
+        Args: { p_tarefa_id: string }
+        Returns: {
+          codigo: string
+          expira_em: string
+          habilitacao_id: string
+          handle: string
+        }[]
+      }
+      habilitar_tarefa: {
+        Args: { p_dispositivo_id: string; p_tarefa_id: string }
+        Returns: string
+      }
       iniciar_rodada_validacao: {
         Args: { p_publicacao_id: string }
         Returns: {
@@ -984,7 +1354,37 @@ export type Database = {
           valor_reservado: number
         }[]
       }
+      listar_chamados_token_anunciante: {
+        Args: never
+        Returns: {
+          chamado_id: string
+          evidencia: string
+          handle: string
+          link_comentario: string
+          motivo: string
+          prazo: string
+          resposta_anunciante: string
+          status: string
+        }[]
+      }
+      listar_habilitacoes_tarefa: {
+        Args: { p_tarefa_id: string }
+        Returns: {
+          expira_em: string
+          habilitacao_id: string
+          handle: string
+          status: string
+          token_expira_em: string
+          token_status: string
+        }[]
+      }
       marcar_saque_pago: { Args: { p_saque_id: string }; Returns: undefined }
+      marcar_tokens_exportados: {
+        Args: { p_tarefa_id: string }
+        Returns: undefined
+      }
+      obter_bloqueio_validador_fase9: { Args: never; Returns: Json }
+      obter_dados_admin_fase9: { Args: never; Returns: Json }
       obter_ou_criar_carteira: {
         Args: never
         Returns: {
@@ -1017,6 +1417,16 @@ export type Database = {
         }[]
       }
       obter_saque_minimo: { Args: never; Returns: number }
+      obter_status_liberacao_fase9: {
+        Args: never
+        Returns: {
+          canal: string
+          creditos_disponiveis: number
+          mensagem: string
+          proxima_liberacao_em: string
+          tarefas_concluidas: number
+        }[]
+      }
       obter_tarefa_validacao: {
         Args: { p_habilitacao_id: string }
         Returns: {
@@ -1041,13 +1451,43 @@ export type Database = {
         }
         Returns: number
       }
+      processar_bloqueios_diarios: { Args: never; Returns: number }
+      processar_bloqueios_habilitacoes_expiradas: {
+        Args: never
+        Returns: number
+      }
+      processar_chamados_token_expirados: { Args: never; Returns: number }
       processar_habilitacoes_expiradas: { Args: never; Returns: number }
       registrar_indicacao: { Args: { p_codigo: string }; Returns: string }
       reservar_pacote: {
         Args: { p_referencia_id?: string; p_valor: number }
         Returns: string
       }
+      resolver_chamado_token: {
+        Args: { p_chamado_id: string; p_decisao: string; p_observacao: string }
+        Returns: undefined
+      }
+      responder_chamado_token: {
+        Args: { p_chamado_id: string; p_resposta: string }
+        Returns: undefined
+      }
+      salvar_regra_liberacao: {
+        Args: {
+          p_ativo: boolean
+          p_ciclica: boolean
+          p_id: string
+          p_quantidade_liberada: number
+          p_quantidade_requisito: number
+          p_tipo_destino_id: string
+          p_tipo_origem_id: string
+        }
+        Returns: string
+      }
       solicitar_saque: { Args: { p_valor: number }; Returns: string }
+      validar_token_tarefa: {
+        Args: { p_codigo: string; p_habilitacao_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "validador" | "anunciante" | "admin"
