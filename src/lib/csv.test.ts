@@ -21,7 +21,7 @@ describe("celulaCsvSegura", () => {
 describe("gerarCsv", () => {
   it("aplica a proteção em todas as colunas", () => {
     expect(gerarCsv(["@", "codigo"], [["=1+1", "+codigo"]])).toBe(
-      '"@","codigo"\r\n"\'=1+1","\'+codigo"',
+      '"\'@","codigo"\r\n"\'=1+1","\'+codigo"',
     );
   });
 });

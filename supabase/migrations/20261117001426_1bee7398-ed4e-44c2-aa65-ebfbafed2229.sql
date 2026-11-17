@@ -1,0 +1,1 @@
+drop policy if exists criativos_public_read on storage.objects;
