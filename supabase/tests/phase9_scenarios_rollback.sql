@@ -1,6 +1,6 @@
 begin;
 
-select plan(11);
+select plan(13);
 
 select is(
   (select count(*)::integer from information_schema.tables
@@ -95,6 +95,25 @@ select ok(
      and p.prosrc like '%::public.app_role%'
      and p.prosrc not like '%::app_role%'),
   'as sete RPCs usam app_role qualificado'
+);
+
+select ok(
+  (select count(*) = 2
+   from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public'
+     and p.proname in ('processar_habilitacoes_expiradas','processar_chamados_token_expirados')
+     and not p.prosecdef
+     and has_function_privilege('authenticated',p.oid,'execute')),
+  'rotinas de expiracao usadas nas telas sao acessiveis sem privilegio elevado'
+);
+
+select ok(
+  (select count(*) = 0
+   from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public'
+     and p.proname in ('processar_habilitacoes_expiradas','processar_chamados_token_expirados')
+     and has_function_privilege('anon',p.oid,'execute')),
+  'rotinas de expiracao continuam bloqueadas para visitantes'
 );
 
 select * from finish();
