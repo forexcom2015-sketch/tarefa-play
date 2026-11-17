@@ -108,7 +108,7 @@ function PublicacoesAnunciante() {
       caminhoArquivo = `${auth.user.id}/${id}/${Date.now()}-${nomeSeguro}`;
       const { error: uploadError } = await supabase.storage.from("criativos-publicacoes").upload(caminhoArquivo, arquivo, { contentType: arquivo.type, upsert: false });
       if (uploadError) { setErro(uploadError.message || "Não foi possível enviar a imagem."); setSalvando(false); return; }
-      imagemUrl = supabase.storage.from("criativos-publicacoes").getPublicUrl(caminhoArquivo).data.publicUrl;
+      imagemUrl = caminhoArquivo;
     }
     const selecionada = restricoes.find((item) => item.id === form.restricaoId);
     const revisaoPendente = Boolean(selecionada?.exige_revisao && form.produtoEhCurso);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { assinarCriativo } from "@/lib/criativos";
 
 type Tarefa = {
   habilitacao_id: string;
@@ -59,8 +60,13 @@ function ExecutarValidacao() {
         const item = Array.isArray(data) ? data[0] : data;
         if (!item) setErro("Esta convocação não está mais disponível.");
         else {
-          setTarefa(item as Tarefa);
-          setIniciouEm(Date.now());
+          const imagem = await assinarCriativo((item as Tarefa).imagem_url);
+          if (!ativo) return;
+          if (!imagem) setErro("Não foi possível carregar o criativo desta avaliação.");
+          else {
+            setTarefa({ ...(item as Tarefa), imagem_url: imagem });
+            setIniciouEm(Date.now());
+          }
         }
       }
       setCarregando(false);

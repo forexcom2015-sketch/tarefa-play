@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Phase9AdminPanel } from "@/components/phase9-admin-panel";
+import { assinarCriativo } from "@/lib/criativos";
 
 type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte" | "publicacoes" | "fase9";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
@@ -22,7 +23,7 @@ type SaquePendente = {
   solicitado_em: string;
 };
 type Nivel = { id: string; nome: string; tarefas_validas_minimas: number; ordem: number };
-type PublicacaoRevisao = { id: string; legenda: string; preco: number | string; criado_em: string; imagem_url: string | null; link: string | null; categorias?: { nome: string } | null };
+type PublicacaoRevisao = { id: string; legenda: string; preco: number | string; criado_em: string; imagem_url: string | null; imagem_assinada?: string | null; link: string | null; categorias?: { nome: string } | null };
 
 const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
@@ -138,7 +139,11 @@ function PainelAdmin() {
       setErroFinanceiro("A fila de revisão depende da migration da Fase 6.");
       setPublicacoesRevisao([]);
     } else {
-      setPublicacoesRevisao((data ?? []) as PublicacaoRevisao[]);
+      const itens = await Promise.all(((data ?? []) as PublicacaoRevisao[]).map(async (item) => ({
+        ...item,
+        imagem_assinada: item.imagem_url ? await assinarCriativo(item.imagem_url) : null,
+      })));
+      setPublicacoesRevisao(itens);
     }
     setCarregandoFinanceiro(false);
   }, []);
@@ -385,7 +390,7 @@ function PainelAdmin() {
           ) : publicacoesRevisao.map((item) => (
             <article key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
               <div className="min-w-0">
-                {item.imagem_url && <img src={item.imagem_url} alt="Criativo enviado para revisão" className="mb-3 max-h-40 max-w-full rounded-md object-contain" />}
+                {item.imagem_assinada && <img src={item.imagem_assinada} alt="Criativo enviado para revisão" className="mb-3 max-h-40 max-w-full rounded-md object-contain" />}
                 <p className="font-semibold text-foreground">{item.categorias?.nome ?? "Curso"}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{item.legenda}</p>
                 {item.link && <a href={item.link} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-primary underline">Abrir link da oferta</a>}
