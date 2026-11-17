@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LayoutMenuInferior, TelaFalha } from "@/components/AreaLayout";
 import { cadastroIncompleto, obterAprovacoesValidador } from "@/lib/aprovacoes";
 import { exigirPapel } from "@/lib/papel";
+import { metadadosPagina } from "@/lib/seo";
 
 export const Route = createFileRoute("/validador")({
   ssr: false,
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/validador")({
     const aprovacoes = await obterAprovacoesValidador(auth.user.id);
     if (cadastroIncompleto(aprovacoes)) throw redirect({ to: "/cadastro/completar" });
   },
-  head: () => ({ meta: [{ title: "Área do Validador — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
+  head: () => metadadosPagina("Área do Validador", "Acesse tarefas, ganhos e perfil de Validador."),
   errorComponent: TelaFalha,
   component: () => <LayoutMenuInferior titulo="Área do Validador" itens={[
     { to: "/validador", label: "Tarefas" },

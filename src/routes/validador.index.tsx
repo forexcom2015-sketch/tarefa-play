@@ -3,6 +3,7 @@ import { useNavigate, createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { getPhase9DeviceId, type LiberacaoStatus, type BloqueioStatus, type Phase9RpcClient } from "@/lib/phase9";
+import { metadadosPagina } from "@/lib/seo";
 
 type Tarefa = {
   id: string;
@@ -26,6 +27,7 @@ const phase9 = supabase as unknown as Phase9RpcClient;
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor));
 
 export const Route = createFileRoute("/validador/")({
+  head: () => metadadosPagina("Tarefas disponíveis", "Veja tarefas disponíveis e regras de liberação do Validador."),
   component: TarefasDisponiveis,
 });
 

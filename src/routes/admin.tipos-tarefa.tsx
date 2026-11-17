@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type TipoTarefa = {
   id: string;
@@ -22,6 +23,7 @@ const metodos = [
 ];
 
 export const Route = createFileRoute("/admin/tipos-tarefa")({
+  head: () => metadadosPagina("Tipos de tarefa", "Configure os tipos de tarefa e seus métodos de verificação."),
   component: TiposTarefaAdmin,
 });
 

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { metadadosPagina } from "@/lib/seo";
 
-export const Route = createFileRoute("/anunciante/configuracoes")({ component: ConfiguracoesAnunciante });
+export const Route = createFileRoute("/anunciante/configuracoes")({
+  head: () => metadadosPagina("Configurações do Anunciante", "Consulte os dados básicos da sua conta de Anunciante."),
+  component: ConfiguracoesAnunciante,
+});
 
 function ConfiguracoesAnunciante() {
   const [nome, setNome] = useState("");

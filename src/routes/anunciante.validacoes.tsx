@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type Publicacao = { id: string; legenda: string; status: string; categoria_id: string; revisao_admin_pendente: boolean; categorias?: { nome: string } | null };
 type Rodada = { id: string; publicacao_id: string; quantidade_contratada: number; quantidade_concluida: number; valor_reservado: number | string; status: string };
@@ -15,7 +16,10 @@ type Resultado = {
 const db = supabase as any;
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 
-export const Route = createFileRoute("/anunciante/validacoes")({ component: ValidacoesAnunciante });
+export const Route = createFileRoute("/anunciante/validacoes")({
+  head: () => metadadosPagina("Validações", "Contrate rodadas e acompanhe os resultados das avaliações."),
+  component: ValidacoesAnunciante,
+});
 
 function ValidacoesAnunciante() {
   const [publicacoes, setPublicacoes] = useState<Publicacao[]>([]);

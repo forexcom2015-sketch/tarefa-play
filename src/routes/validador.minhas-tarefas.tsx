@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type Habilitacao = {
   id: string;
@@ -30,6 +31,7 @@ const statusLabel: Record<string, string> = {
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor));
 
 export const Route = createFileRoute("/validador/minhas-tarefas")({
+  head: () => metadadosPagina("Minhas tarefas", "Acompanhe reservas, prazos e avaliações do Validador."),
   component: MinhasTarefas,
 });
 

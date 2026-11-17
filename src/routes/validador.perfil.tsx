@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type Categoria = { id: string; nome: string };
 const db = supabase as any;
 
 export const Route = createFileRoute("/validador/perfil")({
+  head: () => metadadosPagina("Perfil do Validador", "Gerencie seus interesses e acompanhe seu cadastro de Validador."),
   component: PerfilValidador,
 });
 

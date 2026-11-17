@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type Chamado = {
   id: string; motivo: string; link_comentario: string; evidencia: string | null;
@@ -21,7 +22,7 @@ const dataHora = (valor: string) => new Date(valor).toLocaleString("pt-BR");
 
 export const Route = createFileRoute("/admin/chamados-token")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Chamados de token — Admin — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
+  head: () => metadadosPagina("Chamados de token — Admin", "Analise chamados de verificação de códigos."),
   component: ChamadosTokenAdmin,
 });
 

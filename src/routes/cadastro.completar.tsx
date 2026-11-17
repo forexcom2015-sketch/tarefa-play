@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/AreaLayout";
+import { metadadosPagina } from "@/lib/seo";
 import { obterPapel } from "@/lib/papel";
 
 type Categoria = { id: string; nome: string };
@@ -39,7 +40,7 @@ function validarCpf(valor: string) {
 }
 
 export const Route = createFileRoute("/cadastro/completar")({
-  head: () => ({ meta: [{ title: "Completar cadastro — Tarefa-Play" }] }),
+  head: () => metadadosPagina("Completar cadastro", "Envie os dados necessários para concluir seu cadastro."),
   component: CompletarCadastro,
 });
 

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { exigirPapel } from "@/lib/papel";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type Pix = { usuario_id: string; titular_nome: string; titular_cpf: string; tipo_chave: string; chave: string; aprovado: boolean };
 type Social = { id: string; usuario_id: string; handle: string; data_primeira_postagem: string; imagem_url: string | null; status: "pendente" | "aprovada" | "rejeitada"; signedUrl?: string | null };
@@ -10,7 +11,7 @@ type Social = { id: string; usuario_id: string; handle: string; data_primeira_po
 export const Route = createFileRoute("/admin/cadastros")({
   ssr: false,
   beforeLoad: () => exigirPapel("admin"),
-  head: () => ({ meta: [{ title: "Revisão de cadastros — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
+  head: () => metadadosPagina("Revisão de cadastros", "Revise dados Pix e contas de Instagram pendentes."),
   component: RevisaoCadastros,
 });
 

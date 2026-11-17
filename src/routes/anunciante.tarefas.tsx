@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { gerarCsv } from "@/lib/csv";
+import { metadadosPagina } from "@/lib/seo";
 
 type Publicacao = { id: string; legenda: string; status: string };
 type TipoTarefa = { id: string; nome: string; valor_validador: number | string };
@@ -29,7 +30,7 @@ const dataHora = (valor: string) => new Date(valor).toLocaleString("pt-BR");
 
 export const Route = createFileRoute("/anunciante/tarefas")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Tarefas reais — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
+  head: () => metadadosPagina("Tarefas reais", "Crie tarefas, exporte códigos e acompanhe chamados."),
   component: TarefasReais,
 });
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 type Categoria = { id: string; nome: string };
 type Restricao = { id: string; nome: string; descricao: string; exige_revisao: boolean };
@@ -23,7 +24,10 @@ const estadoInicial: Formulario = {
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 const statusLabel: Record<string, string> = { rascunho: "Rascunho", em_validacao: "Em validação", aprovada: "Aprovada", publicada: "Publicada" };
 
-export const Route = createFileRoute("/anunciante/publicacoes")({ component: PublicacoesAnunciante });
+export const Route = createFileRoute("/anunciante/publicacoes")({
+  head: () => metadadosPagina("Publicações", "Crie, revise e duplique publicações para validação privada."),
+  component: PublicacoesAnunciante,
+});
 
 function PublicacoesAnunciante() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);

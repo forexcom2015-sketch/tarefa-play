@@ -3,6 +3,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { assinarCriativo } from "@/lib/criativos";
+import { metadadosPagina } from "@/lib/seo";
 
 type Tarefa = {
   habilitacao_id: string;
@@ -23,12 +24,7 @@ export const Route = createFileRoute("/validador/executar/$habilitacaoId")({
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/entrar" });
   },
-  head: () => ({
-    meta: [
-      { title: "Avaliação interna — Tarefa-Play" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
+  head: () => metadadosPagina("Avaliação interna", "Avalie o produto e registre sua opinião de forma independente."),
   component: ExecutarValidacao,
 });
 

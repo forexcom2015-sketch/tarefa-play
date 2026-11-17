@@ -3,6 +3,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { exigirPapel } from "@/lib/papel";
+import { metadadosPagina } from "@/lib/seo";
 
 type Habilitacao = {
   id: string; status: string; expira_em: string;
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/validador/token/$habilitacaoId")({
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/entrar" });
   },
-  head: () => ({ meta: [{ title: "Validar código — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
+  head: () => metadadosPagina("Validar código", "Valide o código recebido para concluir sua tarefa."),
   component: ValidarCodigo,
 });
 

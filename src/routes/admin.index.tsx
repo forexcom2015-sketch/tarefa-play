@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Phase9AdminPanel } from "@/components/phase9-admin-panel";
 import { assinarCriativo } from "@/lib/criativos";
+import { metadadosPagina } from "@/lib/seo";
 
 type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte" | "publicacoes" | "fase9";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
@@ -52,6 +53,7 @@ const padroes: Record<string, { rotulo: string; tipo: "numero" | "booleano" }> =
 };
 
 export const Route = createFileRoute("/admin/")({
+  head: () => metadadosPagina("Administração", "Gerencie configurações, cadastros, finanças e revisões do Tarefa-Play."),
   component: PainelAdmin,
 });
 

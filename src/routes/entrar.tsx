@@ -14,6 +14,8 @@ export const Route = createFileRoute("/entrar")({
       { name: "description", content: "Acesse sua conta de Validador ou Anunciante no Tarefa-Play." },
       { property: "og:title", content: "Entrar — Tarefa-Play" },
       { property: "og:description", content: "Acesse sua conta no Tarefa-Play." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Entrar,

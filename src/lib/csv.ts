@@ -1,6 +1,6 @@
 /** Impede que planilhas interpretem um valor fornecido por usuário como fórmula. */
 export function celulaCsvSegura(valor: string): string {
-  const protegido = /^[\s\u0000-\u001f]*[=+\-@]/.test(valor) ? `'${valor}` : valor;
+  const protegido = /^\s*[=+\-@]/.test(valor) ? `'${valor}` : valor;
   return `"${protegido.replaceAll('"', '""')}"`;
 }
 

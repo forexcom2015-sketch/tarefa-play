@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { metadadosPagina } from "@/lib/seo";
 
 type PublicacaoResumo = { id: string; status: string };
 type RodadaResumo = { id: string; status: string; valor_reservado: number | string };
 const db = supabase as any;
 const moeda = (valor: number | string) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 
-export const Route = createFileRoute("/anunciante/")({ component: InicioAnunciante });
+export const Route = createFileRoute("/anunciante/")({
+  head: () => metadadosPagina("Painel do Anunciante", "Acompanhe saldo, publicações e rodadas de validação."),
+  component: InicioAnunciante,
+});
 
 function InicioAnunciante() {
   const [saldo, setSaldo] = useState(0);

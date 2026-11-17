@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { metadadosPagina } from "@/lib/seo";
 
 export const Route = createFileRoute("/anunciante/automacao")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Configurar automação — Tarefa-Play" }, { name: "robots", content: "noindex" }] }),
+  head: () => metadadosPagina("Configurar automação", "Consulte as instruções para usar a automação externa."),
   component: ConfigurarAutomacao,
 });
 

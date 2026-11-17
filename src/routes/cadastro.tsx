@@ -17,6 +17,8 @@ export const Route = createFileRoute("/cadastro")({
       { name: "description", content: "Crie sua conta de Validador ou Anunciante no Tarefa-Play." },
       { property: "og:title", content: "Criar conta — Tarefa-Play" },
       { property: "og:description", content: "Cadastre-se como Validador ou Anunciante." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Cadastro,
