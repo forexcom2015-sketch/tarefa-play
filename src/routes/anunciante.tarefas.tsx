@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { gerarCsv } from "@/lib/csv";
 
 type Publicacao = { id: string; legenda: string; status: string };
 type TipoTarefa = { id: string; nome: string; valor_validador: number | string };
@@ -116,12 +117,17 @@ function TarefasReais() {
     if (error) setErro(error.message || "Não foi possível registrar a exportação da lista.");
   }
 
-  async function baixarCsv(tarefaId: string) {
+  function conteudoCsv(tarefaId: string) {
     const rows = tokens[tarefaId] ?? [];
-    if (!rows.length) return;
-    const quote = (value: string) => `"${value.replaceAll('"', '""')}"`;
-    const csv = ["@,codigo,expira_em", ...rows.map((row) => [row.handle, row.codigo, row.expira_em].map(quote).join(","))].join("\r\n");
-    const blob = new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8;" });
+    return gerarCsv(
+      ["@", "codigo", "expira_em"],
+      rows.map((row) => [row.handle, row.codigo, row.expira_em]),
+    );
+  }
+
+  async function baixarCsv(tarefaId: string) {
+    if (!(tokens[tarefaId] ?? []).length) return;
+    const blob = new Blob(["\uFEFF", conteudoCsv(tarefaId)], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url; anchor.download = `tarefa-play-tokens-${tarefaId.slice(0, 8)}.csv`;
@@ -131,11 +137,9 @@ function TarefasReais() {
   }
 
   async function copiarLista(tarefaId: string) {
-    const rows = tokens[tarefaId] ?? [];
-    if (!rows.length) return;
-    const texto = rows.map((row) => `${row.handle},${row.codigo},${row.expira_em}`).join("\n");
+    if (!(tokens[tarefaId] ?? []).length) return;
     try {
-      await navigator.clipboard.writeText(texto);
+      await navigator.clipboard.writeText(conteudoCsv(tarefaId));
       await marcarExportacao(tarefaId);
       setMensagem("Lista copiada. Importe os pares @/código na automação externa.");
     } catch {

@@ -105,6 +105,10 @@ function CompletarCadastro() {
     if (papel === "validador" && !consentimento) return setErro("Confirme o consentimento para uso dos interesses no direcionamento de tarefas.");
     if (papel === "validador" && (!chavePix.trim() || !titularPix.trim())) return setErro("Preencha os dados da conta Pix.");
     if (papel === "validador" && (!instagram.trim() || !dataPostagem || !imagem)) return setErro("Informe o Instagram, a data da primeira postagem e envie uma imagem.");
+    const instagramLimpo = instagram.trim().replace(/^@/, "");
+    if (papel === "validador" && !/^[a-zA-Z0-9._]{1,30}$/.test(instagramLimpo)) {
+      return setErro("Informe um Instagram válido, usando apenas letras, números, pontos e sublinhados.");
+    }
     if (papel === "anunciante" && !tipoProduto.trim()) return setErro("Informe o tipo de produto ou serviço divulgado.");
 
     setSalvando(true);
@@ -152,7 +156,7 @@ function CompletarCadastro() {
         if (uploadError) throw uploadError;
         const imagemPath = caminho;
         const { error: socialError } = await db.from("contas_sociais").upsert({
-          usuario_id: user.id, canal: "instagram", handle: instagram.replace(/^@/, ""),
+          usuario_id: user.id, canal: "instagram", handle: instagramLimpo,
           data_primeira_postagem: dataPostagem, imagem_url: imagemPath, status: "pendente",
         }, { onConflict: "usuario_id,canal" });
         if (socialError) throw socialError;
