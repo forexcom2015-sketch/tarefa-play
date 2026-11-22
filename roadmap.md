@@ -9,3 +9,7 @@
 - [x] Verificar os fluxos centrais no preview; a rodada completa permanece limitada pela exigência real de 100 validadores elegíveis.
 - [x] Conferir a análise profunda: nenhum achado de código ou dependências; resta somente o aviso de senhas vazadas.
 - [ ] Ativar a proteção contra senhas vazadas no Supabase (requer plano compatível e configuração no painel do usuário).
+
+# Melhorias administrativas
+
+- [ ] Adicionar histórico automático de verificações de segurança no Admin, com status, data e observações, sem formulário manual e sem alterar login/cadastro.

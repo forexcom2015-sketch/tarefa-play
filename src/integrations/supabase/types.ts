@@ -1241,6 +1241,36 @@ export type Database = {
           },
         ]
       }
+      verificacoes_seguranca: {
+        Row: {
+          criado_em: string
+          id: string
+          observacoes: string | null
+          registrado_por: string
+          status: string
+          titulo: string
+          verificado_em: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          observacoes?: string | null
+          registrado_por?: string
+          status: string
+          titulo: string
+          verificado_em?: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          observacoes?: string | null
+          registrado_por?: string
+          status?: string
+          titulo?: string
+          verificado_em?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       saldo_disponivel: {
