@@ -12,4 +12,4 @@
 
 # Melhorias administrativas
 
-- [ ] Adicionar histórico automático de verificações de segurança no Admin, com status, data e observações, sem formulário manual e sem alterar login/cadastro.
+- [x] Adicionar histórico automático de verificações de segurança no Admin, com status, data e observações, sem formulário manual e sem alterar login/cadastro.

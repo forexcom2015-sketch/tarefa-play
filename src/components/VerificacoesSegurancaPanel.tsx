@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import {
@@ -7,8 +7,7 @@ import {
   type StatusVerificacaoSeguranca,
 } from "@/lib/verificacoes-seguranca";
 
-type VerificacaoSeguranca =
-  Database["public"]["Tables"]["verificacoes_seguranca"]["Row"];
+type VerificacaoSeguranca = Database["public"]["Tables"]["verificacoes_seguranca"]["Row"];
 
 const CLASSES_STATUS: Record<StatusVerificacaoSeguranca, string> = {
   conforme: "bg-primary/10 text-primary",
@@ -20,18 +19,15 @@ export function VerificacoesSegurancaPanel() {
   const [registros, setRegistros] = useState<VerificacaoSeguranca[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const execucaoInicial = useRef(false);
 
   const executar = useCallback(async () => {
     setCarregando(true);
     setErro("");
 
-    const { error: erroExecucao } = await supabase.rpc(
-      "executar_verificacoes_seguranca",
-    );
+    const { error: erroExecucao } = await supabase.rpc("executar_verificacoes_seguranca");
     if (erroExecucao) {
-      setErro(
-        `Não foi possível executar as verificações automáticas. ${erroExecucao.message}`,
-      );
+      setErro(`Não foi possível executar as verificações automáticas. ${erroExecucao.message}`);
       setCarregando(false);
       return;
     }
@@ -53,6 +49,8 @@ export function VerificacoesSegurancaPanel() {
   }, []);
 
   useEffect(() => {
+    if (execucaoInicial.current) return;
+    execucaoInicial.current = true;
     void executar();
   }, [executar]);
 
@@ -60,13 +58,10 @@ export function VerificacoesSegurancaPanel() {
     <section className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="max-w-2xl">
-          <h2 className="text-lg font-semibold text-foreground">
-            Verificações de segurança
-          </h2>
+          <h2 className="text-lg font-semibold text-foreground">Verificações de segurança</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            O sistema verifica automaticamente a proteção das tabelas ao abrir
-            esta aba. Cada execução gera registros imutáveis, sem preenchimento
-            manual.
+            O sistema verifica automaticamente a proteção das tabelas ao abrir esta aba. Cada
+            execução gera registros imutáveis, sem preenchimento manual.
           </p>
         </div>
         <button
@@ -95,15 +90,10 @@ export function VerificacoesSegurancaPanel() {
 
       <div className="space-y-3" aria-live="polite">
         {registros.map((registro) => (
-          <article
-            key={registro.id}
-            className="rounded-lg border border-border bg-card p-4"
-          >
+          <article key={registro.id} className="rounded-lg border border-border bg-card p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-foreground">
-                  {registro.titulo}
-                </h3>
+                <h3 className="font-semibold text-foreground">{registro.titulo}</h3>
                 <time
                   className="mt-1 block text-xs text-muted-foreground"
                   dateTime={registro.verificado_em}
