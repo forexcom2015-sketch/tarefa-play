@@ -1363,6 +1363,7 @@ export type Database = {
         Args: { p_categoria_id: string }
         Returns: number
       }
+      executar_verificacoes_seguranca: { Args: never; Returns: undefined }
       gerar_tokens_tarefa: {
         Args: { p_tarefa_id: string }
         Returns: {

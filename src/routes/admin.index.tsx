@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Phase9AdminPanel } from "@/components/phase9-admin-panel";
+import { VerificacoesSegurancaPanel } from "@/components/VerificacoesSegurancaPanel";
 import { assinarCriativo } from "@/lib/criativos";
 import { metadadosPagina } from "@/lib/seo";
 
-type Aba = "configuracoes" | "categorias" | "auditoria" | "financeiro" | "suporte" | "publicacoes" | "fase9";
+type Aba = "configuracoes" | "categorias" | "auditoria" | "seguranca" | "financeiro" | "suporte" | "publicacoes" | "fase9";
 type Configuracao = { chave: string; valor: string; descricao: string | null; atualizado_em: string };
 type Categoria = { id: string; nome: string; ativa: boolean };
 type RegistroAuditoria = {
@@ -30,6 +31,7 @@ const abas: { id: Aba; titulo: string }[] = [
   { id: "configuracoes", titulo: "Configurações" },
   { id: "categorias", titulo: "Categorias" },
   { id: "auditoria", titulo: "Auditoria" },
+  { id: "seguranca", titulo: "Segurança" },
   { id: "financeiro", titulo: "Financeiro" },
   { id: "suporte", titulo: "Suporte" },
   { id: "publicacoes", titulo: "Revisão de publicações" },
@@ -243,6 +245,8 @@ function PainelAdmin() {
       {carregando && <p role="status" className="text-sm text-muted-foreground">Carregando dados administrativos...</p>}
 
       {aba === "fase9" && <Phase9AdminPanel />}
+
+      {aba === "seguranca" && <VerificacoesSegurancaPanel />}
 
       {aba === "configuracoes" && (
         <section className="space-y-3">
