@@ -14,3 +14,9 @@
 
 - [x] Adicionar histórico automático de verificações de segurança no Admin, com status, data e observações, sem formulário manual e sem alterar login/cadastro.
 - [x] Permitir que o Admin selecione verificações e gere com AI Gateway um resumo de riscos e ações corretivas priorizadas.
+
+# Tarefas por rede social
+
+- [ ] Criar central e páginas separadas para Instagram, Facebook e YouTube, com formulários e prévias fiéis a cada publicação.
+- [ ] Integrar a criação às regras e à carteira existentes, preservando tarefas, códigos e chamados atuais.
+- [ ] Testar validações, criação, prévias e navegação em desktop e celular.
