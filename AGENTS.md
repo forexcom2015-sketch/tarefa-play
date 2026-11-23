@@ -32,3 +32,4 @@ use the editor.
 ## Project rules
 - Role-gated areas (/validador, /anunciante, /admin) use `ssr: false` + `beforeLoad: exigirPapel(...)` from src/lib/papel.ts; session lives in localStorage so SSR cannot gate.
 - Signup role comes from `perfil` metadata via the `handle_new_user` trigger, limited to validador/anunciante; admin is only granted manually in user_roles.
+- AI-powered admin analysis uses `createServerFn` with `requireSupabaseAuth` plus an explicit `user_roles` admin check; AI Gateway calls live in server-only helpers and return validated structured output, because route guards alone do not protect server functions.

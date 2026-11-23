@@ -13,3 +13,4 @@
 # Melhorias administrativas
 
 - [x] Adicionar histórico automático de verificações de segurança no Admin, com status, data e observações, sem formulário manual e sem alterar login/cadastro.
+- [x] Permitir que o Admin selecione verificações e gere com AI Gateway um resumo de riscos e ações corretivas priorizadas.
