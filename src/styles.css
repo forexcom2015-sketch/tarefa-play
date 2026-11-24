@@ -50,6 +50,9 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
+  --color-instagram: var(--instagram);
+  --color-facebook: var(--facebook);
+  --color-youtube: var(--youtube);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -87,6 +90,9 @@
   --muted: oklch(0.968 0.007 247.896);
   --muted-foreground: oklch(0.554 0.046 257.417);
   --accent: oklch(0.72 0.19 150);
+  --instagram: oklch(0.6 0.22 0);
+  --facebook: oklch(0.55 0.2 260);
+  --youtube: oklch(0.58 0.24 27);
   --accent-foreground: oklch(0.2 0.05 150);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);

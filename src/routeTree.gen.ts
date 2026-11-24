@@ -31,6 +31,9 @@ import { Route as ValidadorIndexRouteImport } from './routes/validador.index'
 import { Route as ValidadorGanhosRouteImport } from './routes/validador.ganhos'
 import { Route as ValidadorMinhasTarefasRouteImport } from './routes/validador.minhas-tarefas'
 import { Route as ValidadorPerfilRouteImport } from './routes/validador.perfil'
+import { Route as AnuncianteCriarFacebookRouteImport } from './routes/anunciante.criar.facebook'
+import { Route as AnuncianteCriarInstagramRouteImport } from './routes/anunciante.criar.instagram'
+import { Route as AnuncianteCriarYoutubeRouteImport } from './routes/anunciante.criar.youtube'
 import { Route as ValidadorExecutarHabilitacaoIdRouteImport } from './routes/validador.executar.$habilitacaoId'
 import { Route as ValidadorTokenHabilitacaoIdRouteImport } from './routes/validador.token.$habilitacaoId'
 
@@ -144,6 +147,22 @@ const ValidadorPerfilRoute = ValidadorPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => ValidadorRoute,
 } as any)
+const AnuncianteCriarFacebookRoute = AnuncianteCriarFacebookRouteImport.update({
+  id: '/criar/facebook',
+  path: '/criar/facebook',
+  getParentRoute: () => AnuncianteRoute,
+} as any)
+const AnuncianteCriarInstagramRoute =
+  AnuncianteCriarInstagramRouteImport.update({
+    id: '/criar/instagram',
+    path: '/criar/instagram',
+    getParentRoute: () => AnuncianteRoute,
+  } as any)
+const AnuncianteCriarYoutubeRoute = AnuncianteCriarYoutubeRouteImport.update({
+  id: '/criar/youtube',
+  path: '/criar/youtube',
+  getParentRoute: () => AnuncianteRoute,
+} as any)
 const ValidadorExecutarHabilitacaoIdRoute =
   ValidadorExecutarHabilitacaoIdRouteImport.update({
     id: '/executar/$habilitacaoId',
@@ -180,6 +199,9 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/anunciante/': typeof AnuncianteIndexRoute
   '/validador/': typeof ValidadorIndexRoute
+  '/anunciante/criar/facebook': typeof AnuncianteCriarFacebookRoute
+  '/anunciante/criar/instagram': typeof AnuncianteCriarInstagramRoute
+  '/anunciante/criar/youtube': typeof AnuncianteCriarYoutubeRoute
   '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
   '/validador/token/$habilitacaoId': typeof ValidadorTokenHabilitacaoIdRoute
 }
@@ -203,6 +225,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/anunciante': typeof AnuncianteIndexRoute
   '/validador': typeof ValidadorIndexRoute
+  '/anunciante/criar/facebook': typeof AnuncianteCriarFacebookRoute
+  '/anunciante/criar/instagram': typeof AnuncianteCriarInstagramRoute
+  '/anunciante/criar/youtube': typeof AnuncianteCriarYoutubeRoute
   '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
   '/validador/token/$habilitacaoId': typeof ValidadorTokenHabilitacaoIdRoute
 }
@@ -230,6 +255,9 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/anunciante/': typeof AnuncianteIndexRoute
   '/validador/': typeof ValidadorIndexRoute
+  '/anunciante/criar/facebook': typeof AnuncianteCriarFacebookRoute
+  '/anunciante/criar/instagram': typeof AnuncianteCriarInstagramRoute
+  '/anunciante/criar/youtube': typeof AnuncianteCriarYoutubeRoute
   '/validador/executar/$habilitacaoId': typeof ValidadorExecutarHabilitacaoIdRoute
   '/validador/token/$habilitacaoId': typeof ValidadorTokenHabilitacaoIdRoute
 }
@@ -258,6 +286,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/anunciante/'
     | '/validador/'
+    | '/anunciante/criar/facebook'
+    | '/anunciante/criar/instagram'
+    | '/anunciante/criar/youtube'
     | '/validador/executar/$habilitacaoId'
     | '/validador/token/$habilitacaoId'
   fileRoutesByTo: FileRoutesByTo
@@ -281,6 +312,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/anunciante'
     | '/validador'
+    | '/anunciante/criar/facebook'
+    | '/anunciante/criar/instagram'
+    | '/anunciante/criar/youtube'
     | '/validador/executar/$habilitacaoId'
     | '/validador/token/$habilitacaoId'
   id:
@@ -307,6 +341,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/anunciante/'
     | '/validador/'
+    | '/anunciante/criar/facebook'
+    | '/anunciante/criar/instagram'
+    | '/anunciante/criar/youtube'
     | '/validador/executar/$habilitacaoId'
     | '/validador/token/$habilitacaoId'
   fileRoutesById: FileRoutesById
@@ -476,6 +513,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ValidadorPerfilRouteImport
       parentRoute: typeof ValidadorRoute
     }
+    '/anunciante/criar/facebook': {
+      id: '/anunciante/criar/facebook'
+      path: '/criar/facebook'
+      fullPath: '/anunciante/criar/facebook'
+      preLoaderRoute: typeof AnuncianteCriarFacebookRouteImport
+      parentRoute: typeof AnuncianteRoute
+    }
+    '/anunciante/criar/instagram': {
+      id: '/anunciante/criar/instagram'
+      path: '/criar/instagram'
+      fullPath: '/anunciante/criar/instagram'
+      preLoaderRoute: typeof AnuncianteCriarInstagramRouteImport
+      parentRoute: typeof AnuncianteRoute
+    }
+    '/anunciante/criar/youtube': {
+      id: '/anunciante/criar/youtube'
+      path: '/criar/youtube'
+      fullPath: '/anunciante/criar/youtube'
+      preLoaderRoute: typeof AnuncianteCriarYoutubeRouteImport
+      parentRoute: typeof AnuncianteRoute
+    }
     '/validador/executar/$habilitacaoId': {
       id: '/validador/executar/$habilitacaoId'
       path: '/executar/$habilitacaoId'
@@ -517,6 +575,9 @@ interface AnuncianteRouteChildren {
   AnuncianteTarefasRoute: typeof AnuncianteTarefasRoute
   AnuncianteValidacoesRoute: typeof AnuncianteValidacoesRoute
   AnuncianteIndexRoute: typeof AnuncianteIndexRoute
+  AnuncianteCriarFacebookRoute: typeof AnuncianteCriarFacebookRoute
+  AnuncianteCriarInstagramRoute: typeof AnuncianteCriarInstagramRoute
+  AnuncianteCriarYoutubeRoute: typeof AnuncianteCriarYoutubeRoute
 }
 
 const AnuncianteRouteChildren: AnuncianteRouteChildren = {
@@ -527,6 +588,9 @@ const AnuncianteRouteChildren: AnuncianteRouteChildren = {
   AnuncianteTarefasRoute: AnuncianteTarefasRoute,
   AnuncianteValidacoesRoute: AnuncianteValidacoesRoute,
   AnuncianteIndexRoute: AnuncianteIndexRoute,
+  AnuncianteCriarFacebookRoute: AnuncianteCriarFacebookRoute,
+  AnuncianteCriarInstagramRoute: AnuncianteCriarInstagramRoute,
+  AnuncianteCriarYoutubeRoute: AnuncianteCriarYoutubeRoute,
 }
 
 const AnuncianteRouteWithChildren = AnuncianteRoute._addFileChildren(
