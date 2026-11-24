@@ -162,6 +162,7 @@ function TarefasReais() {
     <section className="space-y-5">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div><h2 className="text-2xl font-bold text-foreground">Tarefas reais</h2><p className="mt-1 text-sm text-muted-foreground">Crie tarefas para publicações aprovadas, acompanhe os @ habilitados e gere códigos individuais.</p></div>
+        <span className="flex gap-3 text-sm"><a href="/anunciante/criar/instagram" className="text-primary underline">Instagram</a><a href="/anunciante/criar/facebook" className="text-primary underline">Facebook</a><a href="/anunciante/criar/youtube" className="text-primary underline">YouTube</a></span>
         <a href="/anunciante/automacao" className="text-sm font-semibold text-primary underline">Como configurar a automação</a>
       </header>
       {erro && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}

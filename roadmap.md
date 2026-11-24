@@ -17,6 +17,6 @@
 
 # Tarefas por rede social
 
-- [ ] Criar central e páginas separadas para Instagram, Facebook e YouTube, com formulários e prévias fiéis a cada publicação.
-- [ ] Integrar a criação às regras e à carteira existentes, preservando tarefas, códigos e chamados atuais.
+- [x] Criar central e páginas separadas para Instagram, Facebook e YouTube, com formulários e prévias fiéis a cada publicação.
+- [x] Integrar a criação às regras e à carteira existentes, preservando tarefas, códigos e chamados atuais.
 - [ ] Testar validações, criação, prévias e navegação em desktop e celular.
